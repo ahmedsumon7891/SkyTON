@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LogOut, Loader2, Users, ListChecks, CheckSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import UserManagementTab from '@/components/admin/UserManagementTab';
 import TaskManagementTab from '@/components/admin/TaskManagementTab';
@@ -21,12 +22,6 @@ import {
   approveTask,
   rejectTask
 } from '@/data/firestore/adminActions';
-import {
-  Loader2,
-  Users,
-  ListChecks,
-  CheckSquare
-} from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -37,7 +32,7 @@ const containerVariants = {
 };
 
 const AdminPage = () => {
-  const { user } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext);
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [pendingItems, setPendingItems] = useState([]);
@@ -171,89 +166,75 @@ const AdminPage = () => {
       className="w-full min-h-[100dvh] text-white px-4 pb-28 pt-6 bg-[#0f0f0f] overflow-y-auto"
     >
       <div className="max-w-4xl mx-auto space-y-5">
-        <div className="text-center">
-          <h2 className="text-xl font-bold">Admin Dashboard</h2>
-          <p className="text-sm text-muted-foreground">Control center for managing tasks and users</p>
+        {/* Header with Logout */}
+        <div className="flex items-center justify-between">
+          <div className="text-center flex-1">
+            <h2 className="text-xl font-bold">Admin Dashboard</h2>
+            <p className="text-sm text-muted-foreground">Control center for managing tasks and users</p>
+          </div>
+          <button
+            onClick={logout}
+            className="ml-4 flex items-center gap-1 text-sm text-red-500 hover:text-red-400 bg-[#1a1a1a] px-3 py-1.5 rounded-md shadow-sm transition"
+          >
+            <LogOut className="h-4 w-4" /> Logout
+          </button>
         </div>
 
-          <Tabs defaultValue="users" className="w-full bg-[#0f0f0f] ">
-            <TabsList className="grid grid-cols-3 bg-[#1a1a1a] text-white rounded-lg shadow-md">
-              <TabsTrigger
-                value="users"
-                className="flex items-center justify-center gap-1 py-2 rounded-lg
-                  data-[state=active]:bg-primary/80
-                  data-[state=active]:text-white
-                  data-[state=active]:shadow-lg
-                  hover:bg-primary/50
-                  transition-colors duration-200"
-              >
-                <Users className="h-4 w-4" /> Users
-              </TabsTrigger>
-              <TabsTrigger
-                value="tasks"
-                className="flex items-center justify-center gap-1 py-2 rounded-lg
-                  data-[state=active]:bg-primary/80
-                  data-[state=active]:text-white
-                  data-[state=active]:shadow-lg
-                  hover:bg-primary/50
-                  transition-colors duration-200"
-              >
-                <ListChecks className="h-4 w-4" /> Tasks
-              </TabsTrigger>
-              <TabsTrigger
-                value="pending"
-                className="flex items-center justify-center gap-1 py-2 rounded-lg
-                  data-[state=active]:bg-primary/80
-                  data-[state=active]:text-white
-                  data-[state=active]:shadow-lg
-                  hover:bg-primary/50
-                  transition-colors duration-200"
-              >
-                <CheckSquare className="h-4 w-4" /> Pending
-              </TabsTrigger>
-            </TabsList>
+        {/* Main Tabs */}
+        <Tabs defaultValue="users" className="w-full bg-[#0f0f0f]">
+          <TabsList className="grid grid-cols-3 bg-[#1a1a1a] text-white rounded-lg shadow-md">
+            <TabsTrigger value="users" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-primary/50 transition-colors duration-200">
+              <Users className="h-4 w-4" /> Users
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-primary/50 transition-colors duration-200">
+              <ListChecks className="h-4 w-4" /> Tasks
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-primary/50 transition-colors duration-200">
+              <CheckSquare className="h-4 w-4" /> Pending
+            </TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="users" className="pt-4">
-              {loadingUsers ? (
-                <div className="flex justify-center items-center h-32">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
-              ) : (
-                <UserManagementTab
-                  users={users}
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  handleBanToggle={handleBanToggle}
-                />
-              )}
-            </TabsContent>
-
-            <TabsContent value="tasks" className="pt-4">
-              <TaskManagementTab
-                tasks={tasks}
-                newTask={newTask}
-                editingTask={editingTask}
-                handleNewTaskChange={handleNewTaskChange}
-                handleNewTaskVerificationTypeChange={handleNewTaskVerificationTypeChange}
-                handleAddTask={handleAddTask}
-                handleEditingTaskChange={handleEditingTaskChange}
-                handleEditingTaskActiveChange={handleEditingTaskActiveChange}
-                handleEditingTaskVerificationTypeChange={handleEditingTaskVerificationTypeChange}
-                handleUpdateTask={handleUpdateTask}
-                setEditingTask={setEditingTask}
-                handleEditClick={handleEditClick}
-                handleDeleteTask={handleDeleteTask}
+          <TabsContent value="users" className="pt-4">
+            {loadingUsers ? (
+              <div className="flex justify-center items-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <UserManagementTab
+                users={users}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                handleBanToggle={handleBanToggle}
               />
-            </TabsContent>
+            )}
+          </TabsContent>
 
-            <TabsContent value="pending" className="pt-4">
-              <PendingVerificationTab
-                pendingItems={pendingItems}
-                onApprove={handleApprove}
-                onReject={handleReject}
-              />
-            </TabsContent>
-          </Tabs>
+          <TabsContent value="tasks" className="pt-4">
+            <TaskManagementTab
+              tasks={tasks}
+              newTask={newTask}
+              editingTask={editingTask}
+              handleNewTaskChange={handleNewTaskChange}
+              handleNewTaskVerificationTypeChange={handleNewTaskVerificationTypeChange}
+              handleAddTask={handleAddTask}
+              handleEditingTaskChange={handleEditingTaskChange}
+              handleEditingTaskActiveChange={handleEditingTaskActiveChange}
+              handleEditingTaskVerificationTypeChange={handleEditingTaskVerificationTypeChange}
+              handleUpdateTask={handleUpdateTask}
+              setEditingTask={setEditingTask}
+              handleEditClick={handleEditClick}
+              handleDeleteTask={handleDeleteTask}
+            />
+          </TabsContent>
+
+          <TabsContent value="pending" className="pt-4">
+            <PendingVerificationTab
+              pendingItems={pendingItems}
+              onApprove={handleApprove}
+              onReject={handleReject}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </motion.div>
   );
