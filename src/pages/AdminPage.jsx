@@ -132,14 +132,16 @@ const AdminPage = () => {
       className="w-full min-h-[100dvh] px-4 pb-28 pt-6 bg-[#0f0f0f] text-white overflow-y-auto"
     >
       <div className="max-w-4xl mx-auto space-y-6">
-        <Card className="bg-[#0f0f0f] border border-[#23272f] rounded-xl shadow-lg">
+        {/* Only update the bg from bg-white/5 to bg-black/30 or your main bg */}
+        <Card className="bg-black/30 border border-white/10 rounded-xl shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl text-white">Admin Panel</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">Manage users, tasks, and verifications</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="users" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-[#1a1a1a] text-white rounded-lg shadow-md">
+              {/* Only update the bg from bg-white/10 to bg-black/20 or your main bg */}
+              <TabsList className="grid w-full grid-cols-3 bg-black/20 text-white">
                 <TabsTrigger value="users">
                   <Users className="mr-2 h-4 w-4" /> Users
                 </TabsTrigger>
