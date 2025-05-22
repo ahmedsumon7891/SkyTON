@@ -21,7 +21,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
       {tasks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {tasks.map((task) => (
-            <Card key={task.id} className="bg-white/5 border-none shadow-md overflow-hidden">
+            <Card key={task.id} className="bg-white/10 border-none shadow-md overflow-hidden">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-base font-bold text-white truncate pr-2">{task.title}</h3>
