@@ -44,6 +44,7 @@ const TaskManagementTab = ({
 
   // Handle form submission and close the dialog
   const handleFormSubmit = (e) => {
+    e.preventDefault(); // Prevent default form submission
     if (editingTask) {
       handleUpdateTask(e);
     } else {
@@ -81,10 +82,7 @@ const TaskManagementTab = ({
           isEditing={!!editingTask}
         />
 
-        <Dialog open={isFormOpen} onOpenChange={(open) => {
-          setIsFormOpen(open);
-          if (!open && editingTask) setEditingTask(null);
-        }}>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="bg-[#1a1a1a] border-white/10 text-white max-w-md relative">
             <DialogHeader>
               <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
@@ -116,5 +114,3 @@ const TaskManagementTab = ({
 };
 
 export default TaskManagementTab;
-
-                  
