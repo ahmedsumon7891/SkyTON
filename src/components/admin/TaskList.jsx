@@ -1,9 +1,8 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Link, Target, Award, CheckCircle2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,49 +18,66 @@ import {
 const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
   return (
     <div className="w-full">
-      <Table className="w-full">
-        <TableHeader>
-          <TableRow className="border-b border-white/10">
-            <TableHead className="text-white">Title</TableHead>
-            <TableHead className="text-white">Type</TableHead>
-            <TableHead className="text-white">Target</TableHead>
-            <TableHead className="text-white text-right">Reward</TableHead>
-            <TableHead className="text-white text-center">Status</TableHead>
-            <TableHead className="text-white text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tasks.length > 0 ? (
-            tasks.map((task) => (
-              <TableRow key={task.id} className="border-b border-white/10">
-                <TableCell className="font-medium text-white">{task.title}</TableCell>
-                <TableCell className="text-xs capitalize text-muted-foreground">{task.type.replace('_', ' ')}</TableCell>
-                <TableCell className="text-xs max-w-[150px] truncate text-muted-foreground">{task.target || 'N/A'}</TableCell>
-                <TableCell className="text-right font-semibold text-green-400">{task.reward}</TableCell>
-                <TableCell className="text-center">
+      {tasks.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {tasks.map((task) => (
+            <Card key={task.id} className="bg-white/5 border-none shadow-md overflow-hidden">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-white truncate pr-2">{task.title}</h3>
                   <Badge variant={task.active ? 'success' : 'secondary'} className={task.active ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30' : ''}>
                     {task.active ? 'Active' : 'Inactive'}
                   </Badge>
-                </TableCell>
-                <TableCell className="text-right space-x-1">
+                </div>
+                
+                <p className="text-xs text-muted-foreground line-clamp-2">{task.description || 'No description provided.'}</p>
+                
+                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Target className="h-3.5 w-3.5 text-sky-400" />
+                    <span className="font-medium text-white">Type:</span>
+                    <span className="capitalize">{task.type.replace('_', ' ')}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <Award className="h-3.5 w-3.5 text-amber-400" />
+                    <span className="font-medium text-white">Reward:</span>
+                    <span className="text-green-400 font-bold">{task.reward} STON</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1 col-span-2">
+                    <Link className="h-3.5 w-3.5 text-purple-400" />
+                    <span className="font-medium text-white">Target:</span>
+                    <span className="truncate">{task.target || 'N/A'}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1 col-span-2">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-blue-400" />
+                    <span className="font-medium text-white">Verification:</span>
+                    <span className="capitalize">{task.verificationType || 'manual'}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-end gap-2 pt-2">
                   <Button
                     variant="outline"
-                    size="icon"
-                    className="h-8 w-8 bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                    size="sm"
+                    className="h-8 bg-white/5 border-white/10 hover:bg-white/10 text-white"
                     onClick={() => onEditClick(task)}
                     disabled={isEditing}
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-3.5 w-3.5 mr-1" /> Edit
                   </Button>
+                  
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button 
                         variant="destructive" 
-                        size="icon" 
-                        className="h-8 w-8 bg-red-900/20 hover:bg-red-900/30 text-red-400" 
+                        size="sm"
+                        className="h-8 bg-red-900/20 hover:bg-red-900/30 text-red-400" 
                         disabled={isEditing}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-[#1a1a1a] border-white/10 text-white">
@@ -82,18 +98,17 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground">
-                No tasks created yet.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>No tasks created yet.</p>
+          <p className="text-xs mt-1">Create your first task using the form on the left.</p>
+        </div>
+      )}
     </div>
   );
 };
