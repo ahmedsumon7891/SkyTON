@@ -176,7 +176,7 @@ const AdminPage = () => {
           <p className="text-sm text-muted-foreground">Control center for managing tasks and users</p>
         </div>
 
-        <Card className="bg-[#0f0f0f]/5 border border-white/10 rounded-xl shadow-xl">
+        <Card className="bg-[#0f0f0f]/5 border rounded-xl shadow-xl">
           <Tabs defaultValue="users" className="w-full">
             <TabsList className="grid grid-cols-3 bg-[#1a1a1a] text-white rounded-lg shadow-md">
               <TabsTrigger
