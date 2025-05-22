@@ -82,7 +82,10 @@ const TaskManagementTab = ({
           isEditing={!!editingTask}
         />
 
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <Dialog open={isFormOpen} onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open && editingTask) setEditingTask(null);
+        }}>
           <DialogContent className="bg-[#1a1a1a] border-white/10 text-white max-w-md">
             <DialogHeader>
               <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
@@ -100,7 +103,7 @@ const TaskManagementTab = ({
               taskData={editingTask || newTask}
               isEditing={!!editingTask}
               onChange={editingTask ? handleEditingTaskChange : handleNewTaskChange}
-              onActiveChange={handleEditingTaskActiveChange}
+              onActiveChange={editingTask ? handleEditingTaskActiveChange : undefined}
               onVerificationTypeChange={
                 editingTask
                   ? handleEditingTaskVerificationTypeChange
