@@ -32,7 +32,7 @@ const containerVariants = {
 };
 
 const AdminPage = () => {
-  const { logout } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext);
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [pendingItems, setPendingItems] = useState([]);
@@ -68,11 +68,6 @@ const AdminPage = () => {
 
     fetchData();
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('adminSession'); // Clear admin session
-    logout(); // Trigger context logout
-  };
 
   const handleBanToggle = async (telegramId, currentStatus) => {
     const updated = await toggleUserBanStatus(telegramId, !currentStatus);
@@ -163,6 +158,11 @@ const AdminPage = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminSession');
+    logout();
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -176,17 +176,15 @@ const AdminPage = () => {
           <h2 className="text-xl font-bold text-center">Admin Dashboard</h2>
           <button
             onClick={handleLogout}
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-400 transition"
             title="Logout"
-            className="absolute right-0 text-red-500 hover:text-red-400 bg-[#1a1a1a] p-2 rounded-md shadow-sm transition"
           >
             <LogOut className="h-5 w-5" />
           </button>
         </div>
-        <p className="text-center text-sm text-muted-foreground">
-          Control center for managing tasks and users
-        </p>
+        <p className="text-sm text-muted-foreground text-center">Control center for managing tasks and users</p>
 
-        {/* Tabs */}
+        {/* Main Tabs */}
         <Tabs defaultValue="users" className="w-full bg-[#0f0f0f]">
           <TabsList className="grid grid-cols-3 bg-[#1a1a1a] text-white rounded-lg shadow-md">
             <TabsTrigger value="users" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-primary/50 transition-colors duration-200">
