@@ -1,217 +1,284 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { motion } from 'framer-motion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LogOut, Loader2, Users, ListChecks, CheckSquare } from 'lucide-react';
+import { UserContext } from '@/App';
+
+import UserManagementTab from '@/components/admin/UserManagementTab';
+import TaskManagementTab from '@/components/admin/TaskManagementTab';
+import PendingVerificationTab from '@/components/admin/PendingVerificationTab';
+
 import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  useLocation
-} from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import DashboardPage from '@/pages/DashboardPage';
-import AdminPage from '@/pages/AdminPage';
-import StonDropGame from '@/pages/StonDropGame';
-import Navigation from '@/components/layout/Navigation';
-import { Toaster } from '@/components/ui/toaster';
-import { initializeAppData } from '@/data';
-import { Loader2 } from 'lucide-react';
+  getAllUsers,
+  toggleUserBanStatus
+} from '@/data/firestore/userActions';
+import {
+  getAllTasks,
+  addTask,
+  updateTask,
+  deleteTask
+} from '@/data/firestore/taskActions';
+import {
+  getPendingVerifications,
+  approveTask,
+  rejectTask
+} from '@/data/firestore/adminActions';
 
-export const UserContext = React.createContext(null);
-
-// Page transition animations
-const pageVariants = {
-  initial: { opacity: 0, y: 10 },
-  in: { opacity: 1, y: 0 },
-  out: { opacity: 0, y: -10 }
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
 };
 
-const pageTransition = {
-  type: 'tween',
-  ease: 'easeInOut',
-  duration: 0.25
-};
+const AdminPage = () => {
+  const context = useContext(UserContext);
+  const sessionUser = JSON.parse(sessionStorage.getItem('tgUserData') || '{}');
+  const user = context?.user || sessionUser;
 
-function AppContent({
-  isAdmin,
-  adminVerified,
-  setAdminVerified,
-  handleAdminLogin,
-  adminPassword,
-  setAdminPassword,
-  handleLogout
-}) {
-  const location = useLocation();
+  const [users, setUsers] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [pendingItems, setPendingItems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [loadingPending, setLoadingPending] = useState(true);
+  const [tab, setTab] = useState('users');
 
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial="initial"
-        animate="in"
-        exit="out"
-        variants={pageVariants}
-        transition={pageTransition}
-        className="min-h-[100dvh] bg-[#0f0f0f] text-white"
-      >
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<DashboardPage activeView="home" />} />
-          <Route path="/tasks" element={<DashboardPage activeView="tasks" />} />
-          <Route path="/invite" element={<DashboardPage activeView="invite" />} />
-          <Route path="/leaders" element={<DashboardPage activeView="leaders" />} />
-          <Route path="/game" element={<StonDropGame />} />
-          <Route
-            path="/admin"
-            element={
-              isAdmin ? (
-                adminVerified || sessionStorage.getItem("adminSession") === "true" ? (
-                  <>
-                    <AdminPage />
-                    <div className="text-center py-2">
-                      <button onClick={handleLogout} className="text-sm text-red-500">
-                        Logout
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="min-h-screen flex flex-col bg-background dark:bg-gray-900 overflow-y-auto text-primary p-4">
-                    <h2 className="text-xl font-semibold mb-4">Admin Login</h2>
-                    <input
-                      type="password"
-                      placeholder="Enter admin password"
-                      value={adminPassword}
-                      onChange={(e) => setAdminPassword(e.target.value)}
-                      className="border border-gray-300 dark:border-gray-700 rounded px-4 py-2 mb-4 text-black dark:text-white"
-                    />
-                    <button
-                      onClick={handleAdminLogin}
-                      className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark"
-                    >
-                      Login
-                    </button>
-                  </div>
-                )
-              ) : (
-                <Navigate to="/" />
-              )
-            }
-          />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    reward: 0,
+    type: 'telegram_join',
+    target: '',
+    verificationType: 'manual',
+    active: true
+  });
 
-function App() {
-  const location = useLocation();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [adminVerified, setAdminVerified] = useState(() => localStorage.getItem("adminVerified") === "true");
-  const [adminPassword, setAdminPassword] = useState('');
+  const [editingTask, setEditingTask] = useState(null);
+
+  const fetchAllData = async () => {
+    setLoadingUsers(true);
+    setLoadingTasks(true);
+    setLoadingPending(true);
+
+    const [userList, taskList, pendingList] = await Promise.all([
+      getAllUsers(),
+      getAllTasks(),
+      getPendingVerifications()
+    ]);
+
+    setUsers(userList || []);
+    setTasks(taskList || []);
+    setPendingItems(pendingList || []);
+    setLoadingUsers(false);
+    setLoadingTasks(false);
+    setLoadingPending(false);
+  };
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const cachedUser = sessionStorage.getItem("cachedUser");
-        if (cachedUser) {
-          setCurrentUser(JSON.parse(cachedUser));
-        }
-
-        const userData = await initializeAppData();
-        if (userData) {
-          sessionStorage.setItem("cachedUser", JSON.stringify(userData));
-          setCurrentUser(userData);
-        } else {
-          setError("User not found. Please open from the Telegram bot.");
-        }
-      } catch (err) {
-        console.error("App init error:", err);
-        setError("Something went wrong. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUser();
+    fetchAllData();
   }, []);
 
-  const handleAdminLogin = async () => {
-    try {
-      const res = await fetch("/api/verifyAdmin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: adminPassword })
+  const handleBanToggle = async (telegramId, currentStatus) => {
+    const updated = await toggleUserBanStatus(telegramId, !currentStatus);
+    if (updated) {
+      setUsers(prev => prev.map(u =>
+        u.telegramId === telegramId ? { ...u, isBanned: !currentStatus } : u
+      ));
+    }
+  };
+
+  const handleNewTaskChange = (e) => {
+    const { name, value } = e.target;
+    setNewTask(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleNewTaskVerificationTypeChange = (value) => {
+    setNewTask(prev => ({ ...prev, verificationType: value }));
+  };
+
+  const handleAddTask = async (e) => {
+    e.preventDefault();
+    const success = await addTask(newTask);
+    if (success) {
+      const updatedTasks = await getAllTasks();
+      setTasks(updatedTasks);
+      setNewTask({
+        title: '',
+        description: '',
+        reward: 0,
+        type: 'telegram_join',
+        target: '',
+        verificationType: 'manual',
+        active: true
       });
-      const data = await res.json();
-      if (data.success) {
-        setAdminVerified(true);
-        localStorage.setItem("adminVerified", "true");
-        sessionStorage.setItem("adminSession", "true");
-        setError(null);
-      } else {
-        setError(data.message || "Invalid admin password.");
-      }
-    } catch (err) {
-      setError("Admin login failed.");
+    }
+  };
+
+  const handleEditClick = (task) => setEditingTask(task);
+
+  const handleEditingTaskChange = (e) => {
+    const { name, value } = e.target;
+    setEditingTask(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditingTaskVerificationTypeChange = (value) => {
+    setEditingTask(prev => ({ ...prev, verificationType: value }));
+  };
+
+  const handleEditingTaskActiveChange = (checked) => {
+    setEditingTask(prev => ({ ...prev, active: checked }));
+  };
+
+  const handleUpdateTask = async (e) => {
+    e.preventDefault();
+    const success = await updateTask(editingTask.id, editingTask);
+    if (success) {
+      const updatedTasks = await getAllTasks();
+      setTasks(updatedTasks);
+      setEditingTask(null);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    const success = await deleteTask(taskId);
+    if (success) {
+      const updatedTasks = await getAllTasks();
+      setTasks(updatedTasks);
+    }
+  };
+
+  const handleApprove = async (userId, taskId) => {
+    const success = await approveTask(userId, taskId);
+    if (success) {
+      const updatedPending = await getPendingVerifications();
+      setPendingItems(updatedPending);
+    }
+  };
+
+  const handleReject = async (userId, taskId) => {
+    const success = await rejectTask(userId, taskId);
+    if (success) {
+      const updatedPending = await getPendingVerifications();
+      setPendingItems(updatedPending);
+    }
+  };
+
+  const handleTabChange = async (value) => {
+    setTab(value);
+    if (value === 'users') {
+      setLoadingUsers(true);
+      const userList = await getAllUsers();
+      setUsers(userList || []);
+      setLoadingUsers(false);
+    } else if (value === 'tasks') {
+      setLoadingTasks(true);
+      const taskList = await getAllTasks();
+      setTasks(taskList || []);
+      setLoadingTasks(false);
+    } else if (value === 'pending') {
+      setLoadingPending(true);
+      const pendingList = await getPendingVerifications();
+      setPendingItems(pendingList || []);
+      setLoadingPending(false);
     }
   };
 
   const handleLogout = () => {
-    setAdminVerified(false);
-    localStorage.removeItem("adminVerified");
-    sessionStorage.removeItem("adminSession");
-    sessionStorage.removeItem("cachedUser");
-    sessionStorage.removeItem("tgWebAppDataRaw");
+    if (window.confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('adminVerified');
+      sessionStorage.removeItem('adminSession');
+      window.location.reload(); // Reload the page to trigger the login screen
+    }
   };
 
-  const isGameRoute = location.pathname === "/game";
-  const isAdmin = currentUser?.isAdmin === true;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-white">
-        <Loader2 className="h-12 w-12 animate-spin text-sky-400" />
-        <p className="text-sm text-muted-foreground ml-3">Loading your dashboard...</p>
-      </div>
-    );
-  }
-
-  if (error || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-red-500 p-4">
-        <p className="text-center">{error || "User data could not be loaded."}</p>
-      </div>
-    );
-  }
-
   return (
-    <UserContext.Provider value={{ user: currentUser, setUser: setCurrentUser }}>
-      <div className="min-h-screen flex flex-col bg-[#0f0f0f] text-white">
-        <main className="flex-grow overflow-x-hidden">
-          <AppContent
-            isAdmin={isAdmin}
-            adminVerified={adminVerified}
-            setAdminVerified={setAdminVerified}
-            handleAdminLogin={handleAdminLogin}
-            adminPassword={adminPassword}
-            setAdminPassword={setAdminPassword}
-            handleLogout={handleLogout}
-          />
-        </main>
-        {!isGameRoute && <Navigation isAdmin={isAdmin} />}
-        <Toaster />
-      </div>
-    </UserContext.Provider>
-  );
-}
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="w-full min-h-[100dvh] text-white px-4 pb-28 pt-6 bg-[#0f0f0f] overflow-y-auto"
+    >
+      <div className="max-w-4xl mx-auto space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="w-10"></div> {/* Spacer to center the heading */}
+          <div className="text-center flex-1">
+            <h2 className="text-xl font-bold">Admin Dashboard</h2>
+            <p className="text-sm text-muted-foreground">Control center for managing tasks and users</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-10 flex items-center justify-center text-red-500 hover:text-red-400 bg-[#1a1a1a] p-2 rounded-md shadow-sm transition"
+            title="Logout"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        </div>
 
-export default function WrappedApp() {
-  return (
-    <Router>
-      <App />
-    </Router>
+        <Tabs value={tab} onValueChange={handleTabChange} className="w-full bg-[#0f0f0f]">
+          <TabsList className="grid grid-cols-3 bg-[#1a1a1a] text-white rounded-lg shadow-md">
+            <TabsTrigger value="users" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80">
+              <Users className="h-4 w-4" /> Users
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80">
+              <ListChecks className="h-4 w-4" /> Tasks
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80">
+              <CheckSquare className="h-4 w-4" /> Pending
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="users" className="pt-4">
+            {loadingUsers ? (
+              <div className="flex justify-center items-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <UserManagementTab
+                users={users}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                handleBanToggle={handleBanToggle}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="tasks" className="pt-4">
+            <TaskManagementTab
+              tasks={tasks}
+              newTask={newTask}
+              editingTask={editingTask}
+              handleNewTaskChange={handleNewTaskChange}
+              handleNewTaskVerificationTypeChange={handleNewTaskVerificationTypeChange}
+              handleAddTask={handleAddTask}
+              handleEditingTaskChange={handleEditingTaskChange}
+              handleEditingTaskActiveChange={handleEditingTaskActiveChange}
+              handleEditingTaskVerificationTypeChange={handleEditingTaskVerificationTypeChange}
+              handleUpdateTask={handleUpdateTask}
+              setEditingTask={setEditingTask}
+              handleEditClick={handleEditClick}
+              handleDeleteTask={handleDeleteTask}
+            />
+          </TabsContent>
+
+          <TabsContent value="pending" className="pt-4">
+            {loadingPending ? (
+              <div className="flex justify-center items-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <PendingVerificationTab
+                pendingItems={pendingItems}
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </motion.div>
   );
-}
+};
+
+export default AdminPage;
+  
