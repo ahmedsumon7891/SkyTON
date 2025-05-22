@@ -33,7 +33,6 @@ const AdminPage = () => {
   const context = useContext(UserContext);
   const sessionUser = JSON.parse(sessionStorage.getItem('tgUserData') || '{}');
   const user = context?.user || sessionUser;
-  const logout = context?.logout || (() => {});
 
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -187,9 +186,9 @@ const AdminPage = () => {
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('adminSession');
-      sessionStorage.removeItem('tgUserData');
-      logout();
+      localStorage.removeItem('adminVerified');
+      sessionStorage.removeItem('adminSession');
+      window.location.reload(); // Reload the page to trigger the login screen
     }
   };
 
@@ -282,4 +281,3 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
-      
