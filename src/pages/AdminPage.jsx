@@ -178,15 +178,39 @@ const AdminPage = () => {
 
         <Card className="bg-white/5 border border-white/10 rounded-xl shadow-xl">
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid grid-cols-3 bg-white/10 text-white">
-              <TabsTrigger value="users">
-                <Users className="h-4 w-4 mr-1" /> Users
+            <TabsList className="grid grid-cols-3 bg-[#1a1a1a] text-white rounded-lg shadow-md">
+              <TabsTrigger
+                value="users"
+                className="flex items-center justify-center gap-1 py-2 rounded-lg
+                  data-[state=active]:bg-primary/80
+                  data-[state=active]:text-white
+                  data-[state=active]:shadow-lg
+                  hover:bg-primary/50
+                  transition-colors duration-200"
+              >
+                <Users className="h-4 w-4" /> Users
               </TabsTrigger>
-              <TabsTrigger value="tasks">
-                <ListChecks className="h-4 w-4 mr-1" /> Tasks
+              <TabsTrigger
+                value="tasks"
+                className="flex items-center justify-center gap-1 py-2 rounded-lg
+                  data-[state=active]:bg-primary/80
+                  data-[state=active]:text-white
+                  data-[state=active]:shadow-lg
+                  hover:bg-primary/50
+                  transition-colors duration-200"
+              >
+                <ListChecks className="h-4 w-4" /> Tasks
               </TabsTrigger>
-              <TabsTrigger value="pending">
-                <CheckSquare className="h-4 w-4 mr-1" /> Pending
+              <TabsTrigger
+                value="pending"
+                className="flex items-center justify-center gap-1 py-2 rounded-lg
+                  data-[state=active]:bg-primary/80
+                  data-[state=active]:text-white
+                  data-[state=active]:shadow-lg
+                  hover:bg-primary/50
+                  transition-colors duration-200"
+              >
+                <CheckSquare className="h-4 w-4" /> Pending
               </TabsTrigger>
             </TabsList>
 
