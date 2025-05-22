@@ -176,7 +176,6 @@ const AdminPage = () => {
           <p className="text-sm text-muted-foreground">Control center for managing tasks and users</p>
         </div>
 
-        <Card className="bg-[#0f0f0f]">
           <Tabs defaultValue="users" className="w-full bg-[#0f0f0f] ">
             <TabsList className="grid grid-cols-3 bg-[#1a1a1a] text-white rounded-lg shadow-md">
               <TabsTrigger
@@ -255,7 +254,6 @@ const AdminPage = () => {
               />
             </TabsContent>
           </Tabs>
-        </Card>
       </div>
     </motion.div>
   );
