@@ -160,7 +160,14 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
                       <div className="flex items-center gap-1.5">
                         <div>
                           <span className="text-[#BCCCDC]">User: </span>
-                          <span className="text-white">{username}</span>
+                          <span className="text-sky-300">
+                            <a
+                              href={`https://t.me/${username}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:underline break-all">
+                              @{username}
+                          </a></span>
                         </div>
                       </div>
                       
