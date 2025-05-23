@@ -44,6 +44,7 @@ const TaskManagementTab = ({
 
   // Handle form submission and close the dialog
   const handleFormSubmit = (e) => {
+    e.preventDefault(); // Prevent default form submission
     if (editingTask) {
       handleUpdateTask(e);
     } else {
@@ -96,7 +97,7 @@ const TaskManagementTab = ({
               taskData={editingTask || newTask}
               isEditing={!!editingTask}
               onChange={editingTask ? handleEditingTaskChange : handleNewTaskChange}
-              onActiveChange={editingTask ? handleEditingTaskActiveChange : handleNewTaskActiveChange}
+              onActiveChange={editingTask ? handleEditingTaskActiveChange : undefined} // Fixed here
               onVerificationTypeChange={
                 editingTask
                   ? handleEditingTaskVerificationTypeChange
@@ -112,4 +113,4 @@ const TaskManagementTab = ({
   );
 };
 
-export default TaskManagementTab;                
+export default TaskManagementTab;
