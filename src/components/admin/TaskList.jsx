@@ -22,7 +22,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {tasks.map((task) => (
             <Card key={task.id} className="bg-white/10 border-none shadow-md overflow-hidden">
-              <CardContent className="p-4 bg-[#4B72D6]">
+              <CardContent className="p-4 bg-[#483D8B]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-base font-bold text-white truncate pr-2">{task.title}</h3>
                   <Badge variant={task.active ? 'success' : 'secondary'} className={task.active ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30' : ''}>
