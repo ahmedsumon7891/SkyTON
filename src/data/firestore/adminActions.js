@@ -57,16 +57,21 @@ export const getPendingVerifications = async () => {
 
     const pendingItems = [];
 
-    for (const taskId of user.pendingVerificationTasks) {
-      const details = user.pendingVerificationDetails?.[taskId] || {};
-      pendingItems.push({
-        userId: user.id,
-        username: user.username || user.firstName || `User ${user.id}`,
-        taskId,
-        title: details.title || undefined,
-        target: details.target || undefined,
-        reward: details.reward || undefined
-      });
+    for (const user of allUsers) {
+      if (Array.isArray(user.pendingVerificationTasks) && user.pendingVerificationTasks.length > 0) {
+        for (const taskId of user.pendingVerificationTasks) {
+          // --- NEW: Get details from pendingVerificationDetails if present ---
+          const details = user.pendingVerificationDetails?.[taskId] || {};
+          pendingItems.push({
+            userId: user.id,
+            username: user.username || user.firstName || `User ${user.id}`,
+            taskId,
+            title: details.title || undefined,
+            target: details.target || undefined,
+            reward: details.reward || undefined
+          });
+        }
+      }
     }
 
     return pendingItems;
