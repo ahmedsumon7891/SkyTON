@@ -39,7 +39,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                     <div className="flex items-center gap-1.5">
                       <Target className="h-3.5 w-3.5 text-sky-400 flex-shrink-0" />
                       <div>
-                        <span className="text-muted-foreground">Type: </span>
+                        <span className="text-[#BCCCDC]">Type: </span>
                         <span className="text-white capitalize">{task.type.replace('_', ' ')}</span>
                       </div>
                     </div>
@@ -47,7 +47,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                     <div className="flex items-center gap-1.5">
                       <Award className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
                       <div>
-                        <span className="text-muted-foreground">Reward: </span>
+                        <span className="text-[#BCCCDC]">Reward: </span>
                         <span className="text-green-400 font-semibold">{task.reward} STON</span>
                       </div>
                     </div>
@@ -55,7 +55,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                     <div className="flex items-center gap-1.5 col-span-2">
                       <Link className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
                       <div className="overflow-hidden">
-                        <span className="text-muted-foreground">Target: </span>
+                        <span className="text-[#BCCCDC]">Target: </span>
                         <span className="text-white truncate">{task.target || 'N/A'}</span>
                       </div>
                     </div>
@@ -63,7 +63,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                     <div className="flex items-center gap-1.5 col-span-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-blue-400 flex-shrink-0" />
                       <div>
-                        <span className="text-muted-foreground">Verification: </span>
+                        <span className="text-[#BCCCDC]">Verification: </span>
                         <span className="text-white capitalize">{task.verificationType || 'manual'}</span>
                       </div>
                     </div>
