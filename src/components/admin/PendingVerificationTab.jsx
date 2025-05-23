@@ -65,12 +65,12 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
     const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId || null;
     const taskId = item.taskId || item.task?.id || null;
 
-    // Find the task in the tasks array
+    // Prefer details from item, fallback to tasks array
     const task = tasks.find(t => t.id === taskId);
 
-    const taskTitle = task ? task.title : "Unknown Task";
-    const taskTarget = task ? task.target : "";
-    const reward = task ? task.reward : 0;
+    const taskTitle = item.title || (task ? task.title : "Unknown Task");
+    const taskTarget = item.target || (task ? task.target : "");
+    const reward = item.reward || (task ? task.reward : 0);
 
     const username = item.username ||
       item.user?.username ||
