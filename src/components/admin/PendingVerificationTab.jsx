@@ -7,17 +7,8 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
 import { Check, X, Loader2 } from 'lucide-react';
 
-// --- FIX: Accept tasks as a prop ---
 const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onReject }) => {
   const [processing, setProcessing] = useState({});
   const ADMIN_CHAT_ID = '5063003944';
@@ -60,12 +51,9 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
     }
   };
 
-  // --- FIX: Lookup task info from tasks array ---
   const getItemInfo = (item) => {
     const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId || null;
     const taskId = item.taskId || item.task?.id || null;
-
-    // Prefer details from item, fallback to tasks array
     const task = tasks.find(t => t.id === taskId);
 
     const taskTitle = item.title || (task ? task.title : "Unknown Task");
@@ -148,91 +136,94 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
         </CardHeader>
 
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b border-white/10">
-                <TableHead className="text-white">User</TableHead>
-                <TableHead className="text-white">Task</TableHead>
-                <TableHead className="text-white">Target</TableHead>
-                <TableHead className="text-right text-white">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+          {pendingItems.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              No tasks pending manual verification.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {pendingItems.map((item) => {
+                const { userId, taskId, taskTitle, taskTarget, reward, username } = getItemInfo(item);
+                const link = generateLink(taskTarget);
+                const isProcessing = processing.userId === userId && processing.taskId === taskId;
+                const isApproving = isProcessing && processing.action === 'approve';
+                const isRejecting = isProcessing && processing.action === 'reject';
 
-            <TableBody>
-              {pendingItems.length > 0 ? (
-                pendingItems.map((item) => {
-                  const { userId, taskId, taskTitle, taskTarget, username } = getItemInfo(item);
-                  const link = generateLink(taskTarget);
-                  const isProcessing = processing.userId === userId && processing.taskId === taskId;
-                  const isApproving = isProcessing && processing.action === 'approve';
-                  const isRejecting = isProcessing && processing.action === 'reject';
-
-                  return (
-                    <TableRow key={`${userId}-${taskId}`} className="border-b border-white/10">
-                      <TableCell className="text-sm font-medium text-white">{username}</TableCell>
-                      <TableCell className="text-sm text-white">{taskTitle}</TableCell>
-                      <TableCell className="text-xs max-w-[150px] truncate">
+                return (
+                  <div
+                    key={`${userId}-${taskId}`}
+                    className="bg-[#181f2a] rounded-xl shadow-lg p-5 flex flex-col justify-between min-h-[220px] border border-white/10"
+                  >
+                    <div className="mb-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-gray-400">User:</span>
+                        <span className="font-semibold text-white truncate">{username}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-gray-400">Task:</span>
+                        <span className="font-semibold text-sky-300 truncate">{taskTitle}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-gray-400">Target:</span>
                         {link ? (
                           <a
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-400 hover:underline break-words"
+                            className="text-blue-400 hover:underline break-all"
                           >
                             {taskTarget}
                           </a>
                         ) : (
                           <span className="text-muted-foreground">N/A</span>
                         )}
-                      </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-green-900/20 hover:bg-green-900/30 text-green-400 border-green-900/30"
-                          onClick={() => handleApprove(item)}
-                          disabled={isProcessing}
-                        >
-                          {isApproving ? (
-                            <>
-                              <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing
-                            </>
-                          ) : (
-                            <>
-                              <Check className="mr-1 h-4 w-4" /> Approve
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="bg-red-900/20 hover:bg-red-900/30 text-red-400"
-                          onClick={() => handleReject(item)}
-                          disabled={isProcessing}
-                        >
-                          {isRejecting ? (
-                            <>
-                              <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing
-                            </>
-                          ) : (
-                            <>
-                              <X className="mr-1 h-4 w-4" /> Reject
-                            </>
-                          )}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    No tasks pending manual verification.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-gray-400">Reward:</span>
+                        <span className="text-green-400 font-semibold">+{reward} STON</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-auto">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 bg-green-900/20 hover:bg-green-900/30 text-green-400 border-green-900/30"
+                        onClick={() => handleApprove(item)}
+                        disabled={isProcessing}
+                      >
+                        {isApproving ? (
+                          <>
+                            <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Approving...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="mr-1 h-4 w-4" /> Approve
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1 bg-red-900/20 hover:bg-red-900/30 text-red-400"
+                        onClick={() => handleReject(item)}
+                        disabled={isProcessing}
+                      >
+                        {isRejecting ? (
+                          <>
+                            <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Rejecting...
+                          </>
+                        ) : (
+                          <>
+                            <X className="mr-1 h-4 w-4" /> Reject
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -240,3 +231,4 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
 };
 
 export default PendingVerificationTab;
+        
