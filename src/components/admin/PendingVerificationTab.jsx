@@ -17,16 +17,16 @@ import {
 } from '@/components/ui/table';
 import { Check, X, Loader2 } from 'lucide-react';
 
-const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
+// --- FIX: Accept tasks as a prop ---
+const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onReject }) => {
   const [processing, setProcessing] = useState({});
-  const ADMIN_CHAT_ID = '5063003944'; // Replace with your admin chat ID
+  const ADMIN_CHAT_ID = '5063003944';
 
   const sendMessage = async (chatId, message) => {
     if (!chatId) {
       sendAdminLog("Error: Missing chat ID for notification");
       return false;
     }
-
     try {
       await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
@@ -60,14 +60,23 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
     }
   };
 
+  // --- FIX: Lookup task info from tasks array ---
   const getItemInfo = (item) => {
     const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId || null;
     const taskId = item.taskId || item.task?.id || null;
-    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unnamed Task";
-    const taskTarget = item.target || item.task?.target || item.taskTarget || "";
 
-    const reward = item.reward || item.task?.reward || 0;
-    const username = item.username || item.user?.username || item.firstName || item.user?.firstName || `User ${userId}`;
+    // Find the task in the tasks array
+    const task = tasks.find(t => t.id === taskId);
+
+    const taskTitle = task ? task.title : "Unknown Task";
+    const taskTarget = task ? task.target : "";
+    const reward = task ? task.reward : 0;
+
+    const username = item.username ||
+      item.user?.username ||
+      item.firstName ||
+      item.user?.firstName ||
+      `User ${userId}`;
 
     return { userId, taskId, taskTitle, taskTarget, reward, username };
   };
