@@ -49,6 +49,23 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
     }
   };
 
+  // Helper function to send messages to admin
+  const sendAdminNotification = async (message) => {
+    try {
+      await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: '5063003944', // Admin chat ID
+          text: message,
+          parse_mode: 'HTML'
+        })
+      });
+    } catch (err) {
+      console.error("Failed to send admin notification:", err);
+    }
+  };
+
   const handleVerificationClick = async (task) => {
     if (!user?.id || !task?.id) return;
 
@@ -68,6 +85,10 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
           if (['member', 'administrator', 'creator'].includes(status)) {
             const verified = await completeTask(user.id, task.id);
             if (verified) {
+              // Send success notification to admin
+              const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
+              await sendAdminNotification(`✅ <b>Auto-Verification Success</b>\n${userMention} successfully joined <b>${task.title}</b> (${task.target})\nReward: +${task.reward} STON`);
+              
               const updatedUser = await getCurrentUser(user.id);
               if (updatedUser) refreshUserData(updatedUser);
               toast({ title: 'Joined Verified', description: `+${task.reward} STON`, variant: 'success' });
@@ -79,14 +100,8 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
             return;
           }
         } else if (data.error_code === 400 || data.error_code === 403) {
-          await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: '5063003944',
-              text: `❗ Bot is not an admin or failed to access @${task.target}. Please ensure it's added correctly.`
-            })
-          });
+          await sendAdminNotification(`❗ <b>Bot Error</b>\nBot is not an admin or failed to access @${task.target}. Please ensure it's added correctly.`);
+          
           toast({ title: 'Bot Error', description: 'Bot is not admin in the group/channel. Contact support.', variant: 'destructive' });
           return;
         } else {
@@ -105,6 +120,13 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
     let success = false;
     if (task.verificationType === 'auto') {
       success = await completeTask(user.id, task.id);
+      
+      if (success) {
+        // Send success notification to admin for other auto-verification types
+        const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
+        await sendAdminNotification(`✅ <b>Auto-Verification Success</b>\n${userMention} completed <b>${task.title}</b>\nReward: +${task.reward} STON`);
+      }
+      
       toast({
         title: success ? 'Task Verified!' : 'Verification Failed',
         description: success ? `+${task.reward} STON` : 'Could not verify task completion.',
@@ -112,6 +134,13 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
       });
     } else {
       success = await requestManualVerification(user.id, task.id);
+      
+      if (success) {
+        // Send manual verification request to admin
+        const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
+        await sendAdminNotification(`🔍 <b>Manual Verification Request</b>\n${userMention} requested verification for <b>${task.title}</b>\nTarget: ${task.target || 'N/A'}\nReward: ${task.reward} STON`);
+      }
+      
       toast({
         title: success ? 'Verification Requested' : 'Request Failed',
         description: success ? `"${task.title}" sent for review.` : 'Try again later.',
@@ -207,3 +236,4 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
 };
 
 export default TasksSection;
+        
