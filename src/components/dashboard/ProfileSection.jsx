@@ -13,6 +13,12 @@ const ProfileSection = ({ user, refreshUser Data }) => {
   const [copying, setCopying] = useState(false);
   const { toast } = useToast();
 
+  // Get admin Telegram username from environment variable
+  const adminUsername = process.env.NEXT_PUBLIC_ADMIN_TG_USERNAME;
+
+  // Check if user is banned
+  const isBanned = user.isBanned; // Assuming user object has isBanned property
+
   const handleConnectWallet = async () => {
     if (!user?.id) return;
     if (walletInput.trim()) {
@@ -100,27 +106,14 @@ const ProfileSection = ({ user, refreshUser Data }) => {
   const displayName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username || `User  ${user.id}`;
   const fallbackAvatar = displayName.substring(0, 2).toUpperCase();
 
-  // Get the admin's Telegram username from environment variables
-  const adminTelegramUsername = process.env.NEXT_PUBLIC_ADMIN_TELEGRAM_USERNAME;
-
   return (
     <div className="w-full h-[100dvh] bg-[#0f0f0f] text-white flex flex-col items-center justify-center px-4 overflow-y-auto">
-      {/* Warning for banned users */}
-      {user.isBanned && (
-        <div className="bg-red-600 text-white p-4 rounded-lg w-full mb-4 text-center">
-          <p className="font-semibold">Warning: Your account is banned.</p>
-          <p>Please contact the admin for assistance.</p>
-          <a
-            href={`https://t.me/${adminTelegramUsername}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-300 underline"
-          >
-            @{adminTelegramUsername}
-          </a>
+      {isBanned && (
+        <div className="bg-red-600 text-white p-4 rounded-lg w-full text-center">
+          <p>You are banned. Please contact the admin.</p>
+          <a href={`https://t.me/${adminUsername}`} className="underline">Contact Admin</a>
         </div>
       )}
-
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <Avatar className="h-24 w-24 border-4 border-sky-500">
           <AvatarImage src={user.profilePicUrl || `https://avatar.vercel.sh/${user.username || user.id}.png`} alt={user.username || user.id} />
@@ -243,3 +236,4 @@ const ProfileSection = ({ user, refreshUser Data }) => {
 };
 
 export default ProfileSection;
+  
