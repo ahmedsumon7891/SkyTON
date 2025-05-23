@@ -85,7 +85,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                         <Button 
                           variant="destructive" 
                           size="sm"
-                          className="h-8 bg-red-900/10 hover:bg-red-900/30 text-red-600" 
+                          className="h-8 bg-red-900/25 hover:bg-red-900/30 text-red-600" 
                           disabled={isEditing}
                         >
                           <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
