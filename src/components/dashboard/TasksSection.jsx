@@ -73,6 +73,19 @@ const TasksSection = ({ tasks = [], user, refreshUser Data, isLoading, setPendin
     const isPending = user.pendingVerificationTasks?.includes(task.id);
     if (isCompleted || isPending) return;
 
+    // Prepare task data for PendingVerificationTab
+    const taskData = {
+      userId: user.id,
+      taskId: task.id,
+      title: task.title,
+      reward: task.reward,
+      target: task.target,
+      verificationType: task.verificationType
+    };
+
+    // Add task data to pending items
+    setPendingItems(prev => [...prev, taskData]);
+
     // Telegram join + auto verify
     if (task.verificationType === 'auto' && task.type === 'telegram_join') {
       try {
@@ -236,4 +249,3 @@ const TasksSection = ({ tasks = [], user, refreshUser Data, isLoading, setPendin
 };
 
 export default TasksSection;
-    
