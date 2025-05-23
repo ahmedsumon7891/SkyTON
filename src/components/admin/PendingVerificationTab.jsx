@@ -60,22 +60,41 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
     }
   };
 
-  const handleApprove = async (item) => {
-    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
-    const taskId = item.taskId || item.task?.id;
+  const getItemInfo = (item) => {
+    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId || null;
+    const taskId = item.taskId || item.task?.id || null;
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unnamed Task";
+    const taskTarget = item.target || item.task?.target || item.taskTarget || "";
 
+    const reward = item.reward || item.task?.reward || 0;
+    const username = item.username || item.user?.username || item.firstName || item.user?.firstName || `User ${userId}`;
+
+    return { userId, taskId, taskTitle, taskTarget, reward, username };
+  };
+
+  const generateLink = (target) => {
+    if (!target) return null;
+    if (target.startsWith('@')) return `https://t.me/${target.replace('@', '')}`;
+    if (target.startsWith('http')) return target;
+    try {
+      const url = new URL(`https://${target}`);
+      return url.href;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleApprove = async (item) => {
+    const { userId, taskId, taskTitle, reward } = getItemInfo(item);
     if (!userId || !taskId) {
       sendAdminLog(`Cannot approve: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
       return;
     }
 
-    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
-    const reward = item.reward || item.task?.reward || 0;
-
     setProcessing({ userId, taskId, action: 'approve' });
 
     const message = `✅ <b>Task Approved!</b>\n\nYour task "<b>${taskTitle}</b>" has been verified and approved.\n\n<b>+${reward} STON</b> has been added to your balance.`;
-    sendMessage(userId, message);
+    await sendMessage(userId, message);
 
     try {
       await onApprove(userId, taskId);
@@ -88,20 +107,16 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
   };
 
   const handleReject = async (item) => {
-    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
-    const taskId = item.taskId || item.task?.id;
-
+    const { userId, taskId, taskTitle } = getItemInfo(item);
     if (!userId || !taskId) {
       sendAdminLog(`Cannot reject: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
       return;
     }
 
-    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
-
     setProcessing({ userId, taskId, action: 'reject' });
 
     const message = `❌ <b>Task Rejected</b>\n\nYour task "<b>${taskTitle}</b>" verification request has been rejected.\n\nPlease make sure you've completed the task correctly and try again.`;
-    sendMessage(userId, message);
+    await sendMessage(userId, message);
 
     try {
       await onReject(userId, taskId);
@@ -137,35 +152,16 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
             <TableBody>
               {pendingItems.length > 0 ? (
                 pendingItems.map((item) => {
-                  const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
-                  const displayName = item.username || item.user?.username || item.firstName || item.user?.firstName || `User ${userId}`;
-
-                  const taskId = item.taskId || item.task?.id;
-                  const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
-                  const taskTarget = item.target || item.task?.target || item.taskTarget || "N/A";
-
-                  const isHandle = taskTarget.startsWith('@');
-                  const isLink = taskTarget.startsWith('http');
-                  const link = isHandle
-                    ? `https://t.me/${taskTarget.replace('@', '')}`
-                    : isLink
-                    ? taskTarget
-                    : taskTarget
-                    ? `https://${taskTarget}`
-                    : null;
-
+                  const { userId, taskId, taskTitle, taskTarget, username } = getItemInfo(item);
+                  const link = generateLink(taskTarget);
                   const isProcessing = processing.userId === userId && processing.taskId === taskId;
                   const isApproving = isProcessing && processing.action === 'approve';
                   const isRejecting = isProcessing && processing.action === 'reject';
 
                   return (
                     <TableRow key={`${userId}-${taskId}`} className="border-b border-white/10">
-                      <TableCell className="text-sm font-medium text-white">
-                        {displayName}
-                      </TableCell>
-                      <TableCell className="text-sm text-white">
-                        {taskTitle}
-                      </TableCell>
+                      <TableCell className="text-sm font-medium text-white">{username}</TableCell>
+                      <TableCell className="text-sm text-white">{taskTitle}</TableCell>
                       <TableCell className="text-xs max-w-[150px] truncate">
                         {link ? (
                           <a
@@ -189,9 +185,13 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
                           disabled={isProcessing}
                         >
                           {isApproving ? (
-                            <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing</>
+                            <>
+                              <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing
+                            </>
                           ) : (
-                            <><Check className="mr-1 h-4 w-4" /> Approve</>
+                            <>
+                              <Check className="mr-1 h-4 w-4" /> Approve
+                            </>
                           )}
                         </Button>
                         <Button
@@ -202,9 +202,13 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
                           disabled={isProcessing}
                         >
                           {isRejecting ? (
-                            <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing</>
+                            <>
+                              <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing
+                            </>
                           ) : (
-                            <><X className="mr-1 h-4 w-4" /> Reject</>
+                            <>
+                              <X className="mr-1 h-4 w-4" /> Reject
+                            </>
                           )}
                         </Button>
                       </TableCell>
@@ -227,4 +231,3 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
 };
 
 export default PendingVerificationTab;
-    
