@@ -37,7 +37,7 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
       <div className="max-w-4xl mx-auto space-y-4">
         <div className="text-center">
           <h2 className="text-xl font-bold text-[#FFD429]">Manage Users</h2>
-          <p className="text-sm text-[#BCCCDC]">Search and control user access</p>
+          <p className="text-sm text-muted-foreground">Search and control user access</p>
         </div>
 
         <Input
@@ -45,7 +45,7 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
           placeholder="Search by ID, name, username, wallet..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-white/5 text-white placeholder:text-[#BCCCDC] border-white/10 focus-visible:ring-1 focus-visible:ring-primary"
+          className="bg-white/5 text-white placeholder:text-muted-foreground border-white/10 focus-visible:ring-1 focus-visible:ring-primary"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
