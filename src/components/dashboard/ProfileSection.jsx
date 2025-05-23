@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Wallet, Link as LinkIcon, Gift, Zap, X, Users, CheckCircle2 } from 'lucide-react';
+import { Wallet, Link as LinkIcon, Gift, Zap, X, Users, CheckCircle2, Copy } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { connectWallet, disconnectWallet, getCurrentUser } from '@/data';
 
@@ -11,6 +11,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const { toast } = useToast();
+  const [copying, setCopying] = useState(false);
 
   const handleConnectWallet = async () => {
     if (!user?.id) return;
@@ -26,7 +27,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
             title: 'Wallet Connected',
             description: `Wallet ${walletInput.substring(0, 6)}...${walletInput.substring(walletInput.length - 4)} added.`,
             variant: 'success',
-            className: "bg-[#1a1a1a] text-white", // fix toast color
+            className: "bg-[#1a1a1a] text-white",
           });
         } else {
           toast({ title: 'Error', description: 'Failed to connect wallet.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
@@ -51,6 +52,26 @@ const ProfileSection = ({ user, refreshUserData }) => {
     }
   };
 
+  const handleCopyWallet = async () => {
+    if (!user.wallet) return;
+    try {
+      await navigator.clipboard.writeText(user.wallet);
+      setCopying(true);
+      toast({
+        title: 'Wallet copied!',
+        description: user.wallet,
+        className: 'bg-[#1a1a1a] text-white'
+      });
+      setTimeout(() => setCopying(false), 1200);
+    } catch {
+      toast({
+        title: "Copy failed!",
+        variant: "destructive",
+        className: 'bg-[#1a1a1a] text-white'
+      });
+    }
+  };
+
   const tasksDone = user.tasks ? Object.values(user.tasks).filter(Boolean).length : 0;
   const displayName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username || `User ${user.id}`;
   const fallbackAvatar = displayName.substring(0, 2).toUpperCase();
@@ -68,15 +89,16 @@ const ProfileSection = ({ user, refreshUserData }) => {
           <p className="text-sm text-gray-400">@{user.username || 'telegram_user'}</p>
         </div>
 
+        {/* Responsive Stat Boxes */}
         <div className="grid grid-cols-2 gap-4 w-full text-sm">
-          <div className="bg-sky-900 p-4 rounded-xl text-center flex flex-col items-center">
+          <div className="bg-sky-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-sky-400 border border-transparent">
             <div className="flex items-center justify-center mb-1">
               <Wallet className="h-5 w-5 text-sky-300 mr-1" />
               <span className="text-gray-300">Balance</span>
             </div>
             <p className="text-lg font-bold text-green-300">{user.balance?.toLocaleString() || '0'} STON</p>
           </div>
-          <div className="bg-yellow-900 p-4 rounded-xl text-center flex flex-col items-center">
+          <div className="bg-yellow-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-yellow-300 border border-transparent">
             <div className="flex items-center justify-center mb-1">
               <Zap className="h-5 w-5 text-yellow-300 mr-1" />
               <span className="text-gray-300">Energy</span>
@@ -85,14 +107,14 @@ const ProfileSection = ({ user, refreshUserData }) => {
               {user.energy || 0}
             </p>
           </div>
-          <div className="bg-purple-900 p-4 rounded-xl text-center flex flex-col items-center">
+          <div className="bg-purple-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-purple-400 border border-transparent">
             <div className="flex items-center justify-center mb-1">
               <Users className="h-5 w-5 text-purple-300 mr-1" />
               <span className="text-gray-300">Referrals</span>
             </div>
             <p className="text-lg font-bold text-purple-300">{user.referrals || 0}</p>
           </div>
-          <div className="bg-emerald-900 p-4 rounded-xl text-center flex flex-col items-center">
+          <div className="bg-emerald-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-emerald-400 border border-transparent">
             <div className="flex items-center justify-center mb-1">
               <CheckCircle2 className="h-5 w-5 text-emerald-300 mr-1" />
               <span className="text-gray-300">Tasks Done</span>
@@ -105,11 +127,20 @@ const ProfileSection = ({ user, refreshUserData }) => {
           <p className="text-sm text-gray-400 mb-2">TON Wallet</p>
           {user.wallet ? (
             <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl text-sm">
-              <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-2 cursor-pointer group"
+                onClick={handleCopyWallet}
+                title="Click to copy full wallet address"
+              >
                 <Wallet className="h-5 w-5 text-sky-400" />
-                <span className="truncate">{user.wallet}</span>
+                <span className="truncate font-mono select-all">
+                  {user.wallet.substring(0, 6)}...{user.wallet.substring(user.wallet.length - 4)}
+                </span>
+                <Copy className={`h-4 w-4 ml-1 opacity-75 group-hover:opacity-100 ${copying ? "text-green-400" : "text-gray-400"}`} />
               </div>
-              <Button size="sm" variant="ghost" onClick={handleDisconnectWallet}>Disconnect</Button>
+              <Button size="icon" variant="ghost" onClick={handleDisconnectWallet} title="Disconnect Wallet" className="ml-1 p-2 hover:bg-red-900/50">
+                <X className="h-5 w-5 text-red-500" />
+              </Button>
             </div>
           ) : (
             <Button variant="secondary" className="w-full" onClick={() => setShowDialog(true)}>
@@ -156,4 +187,4 @@ const ProfileSection = ({ user, refreshUserData }) => {
 };
 
 export default ProfileSection;
-                
+          
