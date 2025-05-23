@@ -127,6 +127,7 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
 
   return (
     <div className="w-full">
+      <Card className="bg-white/10 border-none shadow-md">
         <CardHeader>
           <CardTitle className="text-white">Pending Manual Verifications</CardTitle>
           <CardDescription className="text-muted-foreground">
@@ -224,6 +225,7 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
             </div>
           )}
         </CardContent>
+      </Card>
     </div>
   );
 };
