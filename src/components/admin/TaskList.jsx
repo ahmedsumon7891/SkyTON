@@ -40,7 +40,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                       <Target className="h-3.5 w-3.5 text-sky-400 flex-shrink-0" />
                       <div>
                         <span className="text-[#BCCCDC]">Type: </span>
-                        <span className="text-white capitalize">{task.type.replace('_', ' ')}</span>
+                        <span className="text-sky-300 capitalize">{task.type.replace('_', ' ')}</span>
                       </div>
                     </div>
                     
@@ -56,7 +56,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                       <Link className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
                       <div className="overflow-hidden">
                         <span className="text-[#BCCCDC]">Target: </span>
-                        <span className="text-white truncate">{task.target || 'N/A'}</span>
+                        <span className="text-sky-300 truncate">{task.target || 'N/A'}</span>
                       </div>
                     </div>
                     
@@ -64,7 +64,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                       <CheckCircle2 className="h-3.5 w-3.5 text-blue-400 flex-shrink-0" />
                       <div>
                         <span className="text-[#BCCCDC]">Verification: </span>
-                        <span className="text-white capitalize">{task.verificationType || 'manual'}</span>
+                        <span className="text-sky-300 capitalize">{task.verificationType || 'manual'}</span>
                       </div>
                     </div>
                   </div>
