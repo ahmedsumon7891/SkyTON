@@ -31,7 +31,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                  <div className="text-xs text-[#BCCCDC] line-clamp-2 mb-2">
                     {task.description || 'No description provided.'}
                   </div>
                   
