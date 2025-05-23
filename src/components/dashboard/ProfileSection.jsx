@@ -1,12 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Wallet, Link as LinkIcon, Gift, Zap, X } from 'lucide-react';
+import { Wallet, Link as LinkIcon, Gift, Zap, X, Users, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { connectWallet, disconnectWallet, getCurrentUser } from '@/data';
-import { UserContext } from '@/App';
 
 const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState('');
@@ -27,15 +26,16 @@ const ProfileSection = ({ user, refreshUserData }) => {
             title: 'Wallet Connected',
             description: `Wallet ${walletInput.substring(0, 6)}...${walletInput.substring(walletInput.length - 4)} added.`,
             variant: 'success',
+            className: "bg-[#1a1a1a] text-white", // fix toast color
           });
         } else {
-          toast({ title: 'Error', description: 'Failed to connect wallet.', variant: 'destructive' });
+          toast({ title: 'Error', description: 'Failed to connect wallet.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
         }
       } else {
-        toast({ title: 'Invalid Wallet', description: 'TON address must be 48 characters starting with EQ or UQ.', variant: 'destructive' });
+        toast({ title: 'Invalid Wallet', description: 'TON address must be 48 characters starting with EQ or UQ.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
       }
     } else {
-      toast({ title: 'Wallet Required', description: 'Please enter your TON wallet address.', variant: 'destructive' });
+      toast({ title: 'Wallet Required', description: 'Please enter your TON wallet address.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
     }
   };
 
@@ -45,9 +45,9 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (success) {
       const updatedUser = await getCurrentUser(user.id);
       if (updatedUser) refreshUserData(updatedUser);
-      toast({ title: 'Wallet Disconnected', variant: 'default' });
+      toast({ title: 'Wallet Disconnected', variant: 'default', className: "bg-[#1a1a1a] text-white" });
     } else {
-      toast({ title: 'Error', description: 'Failed to disconnect wallet.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Failed to disconnect wallet.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
     }
   };
 
@@ -69,22 +69,34 @@ const ProfileSection = ({ user, refreshUserData }) => {
         </div>
 
         <div className="grid grid-cols-2 gap-4 w-full text-sm">
-          <div className="bg-sky-900 p-4 rounded-xl text-center">
-            <p className="text-gray-300">Balance</p>
+          <div className="bg-sky-900 p-4 rounded-xl text-center flex flex-col items-center">
+            <div className="flex items-center justify-center mb-1">
+              <Wallet className="h-5 w-5 text-sky-300 mr-1" />
+              <span className="text-gray-300">Balance</span>
+            </div>
             <p className="text-lg font-bold text-green-300">{user.balance?.toLocaleString() || '0'} STON</p>
           </div>
-          <div className="bg-yellow-900 p-4 rounded-xl text-center">
-            <p className="text-gray-300">Energy</p>
+          <div className="bg-yellow-900 p-4 rounded-xl text-center flex flex-col items-center">
+            <div className="flex items-center justify-center mb-1">
+              <Zap className="h-5 w-5 text-yellow-300 mr-1" />
+              <span className="text-gray-300">Energy</span>
+            </div>
             <p className="text-lg font-bold text-yellow-300 flex items-center justify-center">
-              <Zap className="h-4 w-4 mr-1" />{user.energy || 0}
+              {user.energy || 0}
             </p>
           </div>
-          <div className="bg-purple-900 p-4 rounded-xl text-center">
-            <p className="text-gray-300">Referrals</p>
+          <div className="bg-purple-900 p-4 rounded-xl text-center flex flex-col items-center">
+            <div className="flex items-center justify-center mb-1">
+              <Users className="h-5 w-5 text-purple-300 mr-1" />
+              <span className="text-gray-300">Referrals</span>
+            </div>
             <p className="text-lg font-bold text-purple-300">{user.referrals || 0}</p>
           </div>
-          <div className="bg-emerald-900 p-4 rounded-xl text-center">
-            <p className="text-gray-300">Tasks Done</p>
+          <div className="bg-emerald-900 p-4 rounded-xl text-center flex flex-col items-center">
+            <div className="flex items-center justify-center mb-1">
+              <CheckCircle2 className="h-5 w-5 text-emerald-300 mr-1" />
+              <span className="text-gray-300">Tasks Done</span>
+            </div>
             <p className="text-lg font-bold text-emerald-300">{tasksDone}</p>
           </div>
         </div>
@@ -93,7 +105,10 @@ const ProfileSection = ({ user, refreshUserData }) => {
           <p className="text-sm text-gray-400 mb-2">TON Wallet</p>
           {user.wallet ? (
             <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl text-sm">
-              <span className="truncate">{user.wallet}</span>
+              <div className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-sky-400" />
+                <span className="truncate">{user.wallet}</span>
+              </div>
               <Button size="sm" variant="ghost" onClick={handleDisconnectWallet}>Disconnect</Button>
             </div>
           ) : (
@@ -141,3 +156,4 @@ const ProfileSection = ({ user, refreshUserData }) => {
 };
 
 export default ProfileSection;
+                
