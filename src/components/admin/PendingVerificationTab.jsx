@@ -19,29 +19,29 @@ import { Check, X } from 'lucide-react';
 
 const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
   return (
-    <Card>
+    <Card className="bg-[#1a1a1a] border border-white/10">
       <CardHeader>
-        <CardTitle>Pending Manual Verifications</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-white">Pending Manual Verifications</CardTitle>
+        <CardDescription className="text-muted-foreground">
           Review tasks submitted by users that need manual approval.
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <Table>
+        <Table className="text-white">
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Task</TableHead>
-              <TableHead>Target</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-muted-foreground">User </TableHead>
+              <TableHead className="text-muted-foreground">Task</TableHead>
+              <TableHead className="text-muted-foreground">Target</TableHead>
+              <TableHead className="text-right text-muted-foreground">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {pendingItems.length > 0 ? (
               pendingItems.map((item) => {
-                const displayName = item.username || item.firstName || `User ${item.userId}`;
+                const displayName = item.username || item.firstName || `User  ${item.userId}`;
                 const isHandle = item.taskTarget?.startsWith('@');
                 const isLink = item.taskTarget?.startsWith('http');
                 const link = isHandle
@@ -54,13 +54,13 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
 
                 return (
                   <TableRow key={`${item.userId}-${item.taskId}`}>
-                    <TableCell className="text-sm font-medium">
+                    <TableCell className="text-sm font-medium text-white">
                       {displayName}
                     </TableCell>
 
-                    <TableCell className="text-sm">{item.taskTitle}</TableCell>
+                    <TableCell className="text-sm text-white">{item.taskTitle}</TableCell>
 
-                    <TableCell className="text-xs max-w-[150px] truncate">
+                    <TableCell className="text-xs max-w-[150px] truncate text-white">
                       {link ? (
                         <a
                           href={link}
@@ -87,6 +87,7 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
                       <Button
                         variant="destructive"
                         size="sm"
+                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
                         onClick={() => onReject(item.userId, item.taskId)}
                       >
                         <X className="mr-1 h-4 w-4" /> Reject
