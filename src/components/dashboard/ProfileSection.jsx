@@ -3,15 +3,15 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Wallet, Link as LinkIcon, Gift, Zap, X, Users, CheckCircle2, Copy } from 'lucide-react';
+import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { connectWallet, disconnectWallet, getCurrentUser } from '@/data';
 
 const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState('');
   const [showDialog, setShowDialog] = useState(false);
-  const { toast } = useToast();
   const [copying, setCopying] = useState(false);
+  const { toast } = useToast();
 
   const handleConnectWallet = async () => {
     if (!user?.id) return;
@@ -30,13 +30,28 @@ const ProfileSection = ({ user, refreshUserData }) => {
             className: "bg-[#1a1a1a] text-white",
           });
         } else {
-          toast({ title: 'Error', description: 'Failed to connect wallet.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
+          toast({
+            title: 'Error',
+            description: 'Failed to connect wallet.',
+            variant: 'destructive',
+            className: "bg-[#1a1a1a] text-white",
+          });
         }
       } else {
-        toast({ title: 'Invalid Wallet', description: 'TON address must be 48 characters starting with EQ or UQ.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
+        toast({
+          title: 'Invalid Wallet',
+          description: 'TON address must be 48 characters starting with EQ or UQ.',
+          variant: 'destructive',
+          className: "bg-[#1a1a1a] text-white",
+        });
       }
     } else {
-      toast({ title: 'Wallet Required', description: 'Please enter your TON wallet address.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
+      toast({
+        title: 'Wallet Required',
+        description: 'Please enter your TON wallet address.',
+        variant: 'destructive',
+        className: "bg-[#1a1a1a] text-white",
+      });
     }
   };
 
@@ -46,9 +61,18 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (success) {
       const updatedUser = await getCurrentUser(user.id);
       if (updatedUser) refreshUserData(updatedUser);
-      toast({ title: 'Wallet Disconnected', variant: 'default', className: "bg-[#1a1a1a] text-white" });
+      toast({
+        title: 'Wallet Disconnected',
+        variant: 'default',
+        className: "bg-[#1a1a1a] text-white",
+      });
     } else {
-      toast({ title: 'Error', description: 'Failed to disconnect wallet.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
+      toast({
+        title: 'Error',
+        description: 'Failed to disconnect wallet.',
+        variant: 'destructive',
+        className: "bg-[#1a1a1a] text-white",
+      });
     }
   };
 
@@ -60,14 +84,14 @@ const ProfileSection = ({ user, refreshUserData }) => {
       toast({
         title: 'Wallet copied!',
         description: user.wallet,
-        className: 'bg-[#1a1a1a] text-white'
+        className: 'bg-[#1a1a1a] text-white break-all whitespace-pre-line',
       });
       setTimeout(() => setCopying(false), 1200);
     } catch {
       toast({
         title: "Copy failed!",
         variant: "destructive",
-        className: 'bg-[#1a1a1a] text-white'
+        className: 'bg-[#1a1a1a] text-white',
       });
     }
   };
@@ -123,24 +147,37 @@ const ProfileSection = ({ user, refreshUserData }) => {
           </div>
         </div>
 
+        {/* Wallet Box */}
         <div className="w-full mt-6 text-center">
           <p className="text-sm text-gray-400 mb-2">TON Wallet</p>
           {user.wallet ? (
-            <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl text-sm">
-              <div
-                className="flex items-center gap-2 cursor-pointer group"
-                onClick={handleCopyWallet}
-                title="Click to copy full wallet address"
+            <div className="flex items-center bg-white/5 px-4 py-3 rounded-xl text-sm w-full justify-between gap-2">
+              <Wallet className="h-5 w-5 text-sky-400 flex-shrink-0" />
+              <span
+                className="truncate font-mono px-2 text-white select-text text-base text-left w-full"
+                title={user.wallet}
+                style={{ userSelect: 'text' }}
               >
-                <Wallet className="h-5 w-5 text-sky-400" />
-                <span className="truncate font-mono select-all">
-                  {user.wallet.substring(0, 6)}...{user.wallet.substring(user.wallet.length - 4)}
-                </span>
-                <Copy className={`h-4 w-4 ml-1 opacity-75 group-hover:opacity-100 ${copying ? "text-green-400" : "text-gray-400"}`} />
-              </div>
-              <Button size="icon" variant="ghost" onClick={handleDisconnectWallet} title="Disconnect Wallet" className="ml-1 p-2 hover:bg-red-900/50">
-                <X className="h-5 w-5 text-red-500" />
-              </Button>
+                {user.wallet.substring(0, 6)}...{user.wallet.substring(user.wallet.length - 4)}
+              </span>
+              <button
+                type="button"
+                className="flex items-center p-1.5 rounded-full transition hover:bg-sky-400/20 active:scale-95"
+                aria-label="Copy Wallet Address"
+                title={copying ? "Copied!" : "Copy Wallet Address"}
+                onClick={handleCopyWallet}
+              >
+                <Copy className={`h-5 w-5 ${copying ? 'text-green-400' : 'text-gray-400'} transition`} />
+              </button>
+              <button
+                type="button"
+                className="flex items-center p-1.5 rounded-full transition hover:bg-red-400/20 active:scale-95 ml-1"
+                aria-label="Disconnect Wallet"
+                title="Disconnect Wallet"
+                onClick={handleDisconnectWallet}
+              >
+                <Unlink className="h-5 w-5 text-red-500" />
+              </button>
             </div>
           ) : (
             <Button variant="secondary" className="w-full" onClick={() => setShowDialog(true)}>
@@ -167,7 +204,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
               className="absolute top-3 right-3 text-gray-400 hover:text-white"
               onClick={() => setShowDialog(false)}
             >
-              <X className="w-5 h-5" />
+              <Unlink className="w-5 h-5" />
             </button>
             <h2 className="text-lg font-semibold mb-4">Enter your TON Wallet</h2>
             <Input
@@ -187,4 +224,4 @@ const ProfileSection = ({ user, refreshUserData }) => {
 };
 
 export default ProfileSection;
-          
+      
