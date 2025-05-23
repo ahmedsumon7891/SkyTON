@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X } from 'lucide-react';
+import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X, AlertTriangle, Send } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { connectWallet, disconnectWallet, getCurrentUser  } from '@/data';
 
@@ -13,11 +13,11 @@ const ProfileSection = ({ user, refreshUserData }) => {
   const [copying, setCopying] = useState(false);
   const { toast } = useToast();
 
-  // Get admin Telegram username from environment variable
-  const adminUsername = process.env.NEXT_PUBLIC_ADMIN_TG_USERNAME;
+  // Get admin Telegram username from environment variable, fallback to empty string
+  const adminUsername = process.env.NEXT_PUBLIC_ADMIN_TG_USERNAME || "";
 
   // Check if user is banned
-  const isBanned = user.isBanned; // Assuming user object has isBanned property
+  const isBanned = user.isBanned;
 
   const handleConnectWallet = async () => {
     if (!user?.id) return;
@@ -109,9 +109,27 @@ const ProfileSection = ({ user, refreshUserData }) => {
   return (
     <div className="w-full h-[100dvh] bg-[#0f0f0f] text-white flex flex-col items-center justify-center px-4 overflow-y-auto">
       {isBanned && (
-        <div className="bg-red-600 text-white p-4 rounded-lg w-full text-center">
-          <p>You are banned. Please contact the admin.</p>
-          <a href={`https://t.me/${adminUsername}`} className="underline">Contact Admin</a>
+        <div className="w-full max-w-md mb-6">
+          <div className="flex items-start gap-3 bg-gradient-to-r from-red-700 via-red-600 to-red-500 border-2 border-red-400 rounded-xl p-4 shadow-lg relative animate-pulse">
+            <div className="flex-shrink-0 mt-1">
+              <AlertTriangle className="text-yellow-300 bg-red-900 rounded-full p-1 w-8 h-8" />
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-lg text-white mb-1">Account Banned</div>
+              <div className="text-white/90 text-sm mb-2">
+                Your account has been <span className="font-semibold text-yellow-200">banned</span>. If you believe this is a mistake, please contact the admin for assistance.
+              </div>
+              <a
+                href={adminUsername ? `https://t.me/${adminUsername}` : "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sky-200 font-semibold transition"
+              >
+                <Send className="w-4 h-4" />
+                Contact Admin
+              </a>
+            </div>
+          </div>
         </div>
       )}
       <div className="w-full max-w-md flex flex-col items-center gap-6">
@@ -236,4 +254,4 @@ const ProfileSection = ({ user, refreshUserData }) => {
 };
 
 export default ProfileSection;
-  
+      
