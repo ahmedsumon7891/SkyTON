@@ -1,115 +1,128 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import TaskForm from '@/components/admin/TaskForm';
-import TaskList from '@/components/admin/TaskList';
+import { Badge } from '@/components/ui/badge';
+import { Edit, Trash2, Link, Target, Award, CheckCircle2 } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-// This component orchestrates TaskForm and TaskList
-const TaskManagementTab = ({
-  tasks = [],
-  newTask,
-  editingTask,
-  handleNewTaskChange,
-  handleNewTaskVerificationTypeChange,
-  handleAddTask,
-  handleEditingTaskChange,
-  handleEditingTaskActiveChange,
-  handleEditingTaskVerificationTypeChange,
-  handleUpdateTask,
-  setEditingTask,
-  handleEditClick,
-  handleDeleteTask
-}) => {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
-  const openForm = () => setIsFormOpen(true);
-  const closeForm = () => {
-    setIsFormOpen(false);
-    if (editingTask) setEditingTask(null);
-  };
-
-  // When edit is clicked, also open the form
-  const handleTaskEdit = (task) => {
-    handleEditClick(task);
-    setIsFormOpen(true);
-  };
-
-  // Handle form submission and close the dialog
-  const handleFormSubmit = (e) => {
-    if (editingTask) {
-      handleUpdateTask(e);
-    } else {
-      handleAddTask(e);
-    }
-    closeForm();
-  };
-
+const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
   return (
-    <motion.div className="w-full min-h-[100dvh] px-4 pb-28 pt-6 bg-[#0f0f0f] text-white overflow-y-auto">
-      <div className="max-w-4xl mx-auto space-y-4">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-[#FFD429]">Manage Tasks</h2>
-          <p className="text-sm text-[#BCCCDC]">Create and manage tasks for users</p>
+    <div className="w-full">
+      {tasks.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {tasks.map((task) => (
+            <Card key={task.id} className="bg-white/10 border-none shadow-md overflow-hidden">
+              <CardContent className="p-4 bg-[#483D8B]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-bold text-sky-300 truncate pr-2">{task.title}</h3>
+                  <Badge variant={task.active ? 'success' : 'secondary'} className={task.active ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30' : ''}>
+                    {task.active ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="text-xs text-[#BCCCDC] line-clamp-2 mb-2">
+                    {task.description || 'No description provided.'}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-y-2 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <Target className="h-3.5 w-3.5 text-sky-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-[#BCCCDC]">Type: </span>
+                        <span className="text-[#FFD429] capitalize">{task.type.replace('_', ' ')}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1.5">
+                      <Award className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-[#BCCCDC]">Reward: </span>
+                        <span className="text-green-400 font-semibold">{task.reward} STON</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1.5 col-span-2">
+                      <Link className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
+                      <div className="overflow-hidden">
+                        <span className="text-[#BCCCDC]">Target: </span>
+                        <span className="text-[#FFD429] truncate">{task.target || 'N/A'}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1.5 col-span-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-blue-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-[#BCCCDC]">Verification: </span>
+                        <span className="text-[#FFD429] capitalize">{task.verificationType || 'manual'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-end gap-2 pt-2 mt-2 border-t border-white/10">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                      onClick={() => onEditClick(task)}
+                      disabled={isEditing}
+                    >
+                      <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          className="h-8 bg-red-900/25 hover:bg-red-900/30 text-red-600" 
+                          disabled={isEditing}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-[#1a1a1a] border-white/10 text-white">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription className="text-muted-foreground">
+                            This will permanently delete "{task.title}".
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="bg-white/5 text-white hover:bg-white/10 border-white/10">Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => onDeleteTask(task.id)}
+                            className="bg-red-900/20 hover:bg-red-900/30 text-red-400"
+                          >
+                            Delete Task
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">Current Tasks</h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-[#BCCCDC]">{tasks.length} task(s)</span>
-            <Button 
-              onClick={openForm} 
-              className="bg-primary hover:bg-primary/90 text-white"
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Add Task
-            </Button>
-          </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>No tasks created yet.</p>
+          <p className="text-xs mt-1">Create your first task using the form on the left.</p>
         </div>
-        
-        <TaskList
-          tasks={tasks}
-          onEditClick={handleTaskEdit}
-          onDeleteTask={handleDeleteTask}
-          isEditing={!!editingTask}
-        />
-
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="bg-[#1a1a1a] border-white/10 text-white max-w-md">
-            <DialogHeader>
-              <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
-              <DialogDescription>
-                {editingTask
-                  ? 'Modify the details of the existing task.'
-                  : 'Create a new task for users to complete.'}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <TaskForm
-              taskData={editingTask || newTask}
-              isEditing={!!editingTask}
-              onChange={editingTask ? handleEditingTaskChange : handleNewTaskChange}
-              onActiveChange={handleEditingTaskActiveChange}
-              onVerificationTypeChange={
-                editingTask
-                  ? handleEditingTaskVerificationTypeChange
-                  : handleNewTaskVerificationTypeChange
-              }
-              onSubmit={handleFormSubmit}
-              onCancel={closeForm}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-    </motion.div>
+      )}
+    </div>
   );
 };
 
-export default TaskManagementTab;
+export default TaskList;
