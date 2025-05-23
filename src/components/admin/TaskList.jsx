@@ -24,7 +24,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
             <Card key={task.id} className="bg-white/10 border-none shadow-md overflow-hidden">
               <CardContent className="p-4 bg-[#483D8B]">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-base font-bold text-[#FFD429] truncate pr-2">{task.title}</h3>
+                  <h3 className="text-base font-bold text-sky-300 truncate pr-2">{task.title}</h3>
                   <Badge variant={task.active ? 'success' : 'secondary'} className={task.active ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30' : ''}>
                     {task.active ? 'Active' : 'Inactive'}
                   </Badge>
@@ -40,7 +40,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                       <Target className="h-3.5 w-3.5 text-sky-400 flex-shrink-0" />
                       <div>
                         <span className="text-[#BCCCDC]">Type: </span>
-                        <span className="text-sky-300 capitalize">{task.type.replace('_', ' ')}</span>
+                        <span className="text-[#FFD429] capitalize">{task.type.replace('_', ' ')}</span>
                       </div>
                     </div>
                     
@@ -56,7 +56,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                       <Link className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
                       <div className="overflow-hidden">
                         <span className="text-[#BCCCDC]">Target: </span>
-                        <span className="text-sky-300 truncate">{task.target || 'N/A'}</span>
+                        <span className="text-[#FFD429] truncate">{task.target || 'N/A'}</span>
                       </div>
                     </div>
                     
@@ -64,7 +64,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
                       <CheckCircle2 className="h-3.5 w-3.5 text-blue-400 flex-shrink-0" />
                       <div>
                         <span className="text-[#BCCCDC]">Verification: </span>
-                        <span className="text-sky-300 capitalize">{task.verificationType || 'manual'}</span>
+                        <span className="text-[#FFD429] capitalize">{task.verificationType || 'manual'}</span>
                       </div>
                     </div>
                   </div>
