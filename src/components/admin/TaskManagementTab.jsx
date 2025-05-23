@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import TaskForm from '@/components/admin/TaskForm';
 import TaskList from '@/components/admin/TaskList';
 import {
@@ -10,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogClose
 } from "@/components/ui/dialog";
 
 // This component orchestrates TaskForm and TaskList
@@ -82,10 +81,7 @@ const TaskManagementTab = ({
           isEditing={!!editingTask}
         />
 
-        <Dialog open={isFormOpen} onOpenChange={(open) => {
-          setIsFormOpen(open);
-          if (!open && editingTask) setEditingTask(null);
-        }}>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="bg-[#1a1a1a] border-white/10 text-white max-w-md">
             <DialogHeader>
               <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
@@ -94,9 +90,6 @@ const TaskManagementTab = ({
                   ? 'Modify the details of the existing task.'
                   : 'Create a new task for users to complete.'}
               </DialogDescription>
-              <DialogClose className="absolute right-4 top-4 text-muted-foreground hover:text-white">
-                <X className="h-4 w-4" />
-              </DialogClose>
             </DialogHeader>
             
             <TaskForm
@@ -120,3 +113,4 @@ const TaskManagementTab = ({
 };
 
 export default TaskManagementTab;
+            
