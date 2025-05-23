@@ -62,37 +62,27 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
     }
   };
 
-  // Send the structure of pendingItems to admin for debugging
-  React.useEffect(() => {
-    if (pendingItems && pendingItems.length > 0) {
-      const firstItem = pendingItems[0];
-      const itemStructure = JSON.stringify(firstItem, null, 2);
-      sendAdminLog(`First pending item structure:\n<pre>${itemStructure}</pre>`);
-    } else {
-      sendAdminLog("No pending items available");
-    }
-  }, [pendingItems]);
-
   const handleApprove = async (item) => {
     const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
     const taskId = item.taskId || item.task?.id;
-    
+
     if (!userId || !taskId) {
       sendAdminLog(`Cannot approve: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
       return;
     }
-    
-    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
-    const reward = item.reward || item.task?.reward || 0;
-    
+
+    // Access task details from pendingItems
+    const taskDetails = item.pendingVerificationDetails?.[taskId] || {};
+    const taskTitle = taskDetails.title || "Unknown Task";
+    const reward = taskDetails.reward || 0;
+
     setProcessing({ userId, taskId, action: 'approve' });
-    
+
     // Send notification to user immediately
-    sendMessage(
-      userId, 
-      `✅ <b>Task Approved!</b>\n\nYour task "<b>${taskTitle}</b>" has been verified and approved.\n\n<b>+${reward} STON</b> has been added to your balance.`
-    );
-    
+    const message = `✅ <b>Task Approved!</b>\n\nYour task "<b>${taskTitle}</b>" has been verified and approved.\n\n<b>+${reward} STON</b> has been added to your balance.`;
+    console.log("Sending approval message:", message); // Debugging log
+    sendMessage(userId, message);
+
     // Call the original onApprove function
     try {
       await onApprove(userId, taskId);
@@ -107,22 +97,23 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
   const handleReject = async (item) => {
     const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
     const taskId = item.taskId || item.task?.id;
-    
+
     if (!userId || !taskId) {
       sendAdminLog(`Cannot reject: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
       return;
     }
-    
-    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
-    
+
+    // Access task details from pendingItems
+    const taskDetails = item.pendingVerificationDetails?.[taskId] || {};
+    const taskTitle = taskDetails.title || "Unknown Task";
+
     setProcessing({ userId, taskId, action: 'reject' });
-    
+
     // Send notification to user immediately
-    sendMessage(
-      userId, 
-      `❌ <b>Task Rejected</b>\n\nYour task "<b>${taskTitle}</b>" verification request has been rejected.\n\nPlease make sure you've completed the task correctly and try again.`
-    );
-    
+    const message = `❌ <b>Task Rejected</b>\n\nYour task "<b>${taskTitle}</b>" verification request has been rejected.\n\nPlease make sure you've completed the task correctly and try again.`;
+    console.log("Sending rejection message:", message); // Debugging log
+    sendMessage(userId, message);
+
     // Call the original onReject function
     try {
       await onReject(userId, taskId);
@@ -251,4 +242,3 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
 };
 
 export default PendingVerificationTab;
-        
