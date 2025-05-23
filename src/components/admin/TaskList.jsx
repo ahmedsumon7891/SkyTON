@@ -24,7 +24,7 @@ const TaskList = ({ tasks, onEditClick, onDeleteTask, isEditing }) => {
             <Card key={task.id} className="bg-white/10 border-none shadow-md overflow-hidden">
               <CardContent className="p-4 bg-[#483D8B]">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-base font-bold text-yellow truncate pr-2">{task.title}</h3>
+                  <h3 className="text-base font-bold text-[#FFD429] truncate pr-2">{task.title}</h3>
                   <Badge variant={task.active ? 'success' : 'secondary'} className={task.active ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30' : ''}>
                     {task.active ? 'Active' : 'Inactive'}
                   </Badge>
