@@ -1,251 +1,254 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle, CalendarCheck, HelpCircle, Clock, Gamepad2, ArrowRight } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
 import {
-  completeTask,
-  performCheckIn,
-  requestManualVerification,
-  getCurrentUser ,
-  isCheckInDoneToday
-} from '@/data';
-import { useNavigate } from 'react-router-dom';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { Check, X, Loader2 } from 'lucide-react';
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 }
-};
+const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
+  const [processing, setProcessing] = useState({});
+  const ADMIN_CHAT_ID = '5063003944'; // Replace with your admin chat ID
 
-const TasksSection = ({ tasks = [], user, refreshUser Data, isLoading, setPendingItems }) => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const [clickedTasks, setClickedTasks] = useState({});
-
-  const checkInDone = isCheckInDoneToday(user.lastCheckIn);
-
-  const handlePlayGame = () => {
-    if (user?.id) {
-      sessionStorage.setItem('gameUser Id', user.id);
-      navigate('/game');
+  // Helper function to send messages to users
+  const sendMessage = async (chatId, message) => {
+    if (!chatId) {
+      sendAdminLog("Error: Missing chat ID for notification");
+      return false;
     }
-  };
-
-  const handleGoToTask = (taskId, url) => {
-    window.open(url, '_blank');
-    setClickedTasks(prev => ({ ...prev, [taskId]: true }));
-  };
-
-  const handleCheckIn = async () => {
-    if (!user?.id) return;
-    const result = await performCheckIn(user.id);
-    if (result.success) {
-      const updatedUser  = await getCurrentUser (user.id);
-      if (updatedUser ) refreshUser Data(updatedUser );
-      toast({ title: 'Daily Check-in Successful!', description: `+${result.reward} STON`, variant: 'success' });
-    } else {
-      toast({ title: 'Check-in Failed', description: result.message || 'Try again later.', variant: 'default' });
-    }
-  };
-
-  // Helper function to send messages to admin
-  const sendAdminNotification = async (message) => {
+    
     try {
       await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: '5063003944', // Admin chat ID
+          chat_id: chatId,
           text: message,
           parse_mode: 'HTML'
         })
       });
+      return true;
     } catch (err) {
-      console.error("Failed to send admin notification:", err);
+      sendAdminLog(`Error sending message to ${chatId}: ${err.message}`);
+      return false;
     }
   };
 
-  const handleVerificationClick = async (task) => {
-    if (!user?.id || !task?.id) return;
-
-    const isCompleted = user.tasks?.[task.id] === true;
-    const isPending = user.pendingVerificationTasks?.includes(task.id);
-    if (isCompleted || isPending) return;
-
-    // Prepare task data for PendingVerificationTab
-    const taskData = {
-      userId: user.id,
-      taskId: task.id,
-      title: task.title,
-      reward: task.reward,
-      target: task.target,
-      verificationType: task.verificationType
-    };
-
-    // Add task data to pending items
-    setPendingItems(prev => [...prev, taskData]);
-
-    // Telegram join + auto verify
-    if (task.verificationType === 'auto' && task.type === 'telegram_join') {
-      try {
-        const apiUrl = `https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/getChatMember?chat_id=@${task.target.replace('@', '')}&user_id=${user.id}`;
-        const res = await fetch(apiUrl);
-        const data = await res.json();
-
-        if (data.ok) {
-          const status = data.result.status;
-          if (['member', 'administrator', 'creator'].includes(status)) {
-            const verified = await completeTask(user.id, task.id);
-            if (verified) {
-              // Send success notification to admin
-              const userMention = user.username ? `@${user.username}` : `User  ${user.id}`;
-              await sendAdminNotification(`✅ <b>Auto-Verification Success</b>\n${userMention} successfully joined <b>${task.title}</b> (${task.target})\nReward: +${task.reward} STON`);
-              
-              const updatedUser  = await getCurrentUser (user.id);
-              if (updatedUser ) refreshUser Data(updatedUser );
-              toast({ title: 'Joined Verified', description: `+${task.reward} STON`, variant: 'success' });
-              return;
-            }
-          } else {
-            toast({ title: 'Not Verified', description: 'Please join the channel first.', variant: 'destructive' });
-            setClickedTasks(prev => ({ ...prev, [task.id]: false }));
-            return;
-          }
-        } else if (data.error_code === 400 || data.error_code === 403) {
-          await sendAdminNotification(`❗ <b>Bot Error</b>\nBot is not an admin or failed to access @${task.target}. Please ensure it's added correctly.`);
-          
-          toast({ title: 'Bot Error', description: 'Bot is not admin in the group/channel. Contact support.', variant: 'destructive' });
-          return;
-        } else {
-          toast({ title: 'Telegram Error', description: 'Failed to verify. Try again.', variant: 'destructive' });
-          setClickedTasks(prev => ({ ...prev, [task.id]: false }));
-          return;
-        }
-      } catch (err) {
-        toast({ title: 'Network Error', description: 'Could not reach Telegram servers.', variant: 'destructive' });
-        setClickedTasks(prev => ({ ...prev, [task.id]: false }));
-        return;
-      }
-    }
-
-    // Normal auto/manual verify
-    let success = false;
-    if (task.verificationType === 'auto') {
-      success = await completeTask(user.id, task.id);
-      
-      if (success) {
-        // Send success notification to admin for other auto-verification types
-        const userMention = user.username ? `@${user.username}` : `User  ${user.id}`;
-        await sendAdminNotification(`✅ <b>Auto-Verification Success</b>\n${userMention} completed <b>${task.title}</b>\nReward: +${task.reward} STON`);
-      }
-      
-      toast({
-        title: success ? 'Task Verified!' : 'Verification Failed',
-        description: success ? `+${task.reward} STON` : 'Could not verify task completion.',
-        variant: success ? 'success' : 'destructive'
+  // Send logs to admin
+  const sendAdminLog = async (message) => {
+    try {
+      await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ADMIN_CHAT_ID,
+          text: `🔍 <b>Debug Log</b>:\n${message}`,
+          parse_mode: 'HTML'
+        })
       });
+    } catch (error) {
+      console.error("Failed to send admin log:", error);
+    }
+  };
+
+  // Send the structure of pendingItems to admin for debugging
+  React.useEffect(() => {
+    if (pendingItems && pendingItems.length > 0) {
+      const firstItem = pendingItems[0];
+      const itemStructure = JSON.stringify(firstItem, null, 2);
+      sendAdminLog(`First pending item structure:\n<pre>${itemStructure}</pre>`);
     } else {
-      success = await requestManualVerification(user.id, task.id);
-      
-      if (success) {
-        // Send manual verification request to admin
-        const userMention = user.username ? `@${user.username}` : `User  ${user.id}`;
-        await sendAdminNotification(`🔍 <b>Manual Verification Request</b>\n${userMention} requested verification for <b>${task.title}</b>\nTarget: ${task.target || 'N/A'}\nReward: ${task.reward} STON`);
-      }
-      
-      toast({
-        title: success ? 'Verification Requested' : 'Request Failed',
-        description: success ? `"${task.title}" sent for review.` : 'Try again later.',
-        variant: success ? 'default' : 'destructive'
-      });
+      sendAdminLog("No pending items available");
     }
+  }, [pendingItems]);
 
-    if (success) {
-      const updatedUser  = await getCurrentUser (user.id);
-      if (updatedUser ) refreshUser Data(updatedUser );
+  const handleApprove = async (item) => {
+    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
+    const taskId = item.taskId || item.task?.id;
+    
+    if (!userId || !taskId) {
+      sendAdminLog(`Cannot approve: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
+      return;
+    }
+    
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
+    const reward = item.reward || item.task?.reward || 0;
+    
+    setProcessing({ userId, taskId, action: 'approve' });
+    
+    // Send notification to user immediately
+    sendMessage(
+      userId, 
+      `✅ <b>Task Approved!</b>\n\nYour task "<b>${taskTitle}</b>" has been verified and approved.\n\n<b>+${reward} STON</b> has been added to your balance.`
+    );
+    
+    // Call the original onApprove function
+    try {
+      await onApprove(userId, taskId);
+      sendAdminLog(`Approval process initiated for user ${userId}`);
+    } catch (error) {
+      sendAdminLog(`Error during approval: ${error.message}`);
+    } finally {
+      setProcessing({});
+    }
+  };
+
+  const handleReject = async (item) => {
+    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
+    const taskId = item.taskId || item.task?.id;
+    
+    if (!userId || !taskId) {
+      sendAdminLog(`Cannot reject: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
+      return;
+    }
+    
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
+    
+    setProcessing({ userId, taskId, action: 'reject' });
+    
+    // Send notification to user immediately
+    sendMessage(
+      userId, 
+      `❌ <b>Task Rejected</b>\n\nYour task "<b>${taskTitle}</b>" verification request has been rejected.\n\nPlease make sure you've completed the task correctly and try again.`
+    );
+    
+    // Call the original onReject function
+    try {
+      await onReject(userId, taskId);
+      sendAdminLog(`Rejection process initiated for user ${userId}`);
+    } catch (error) {
+      sendAdminLog(`Error during rejection: ${error.message}`);
+    } finally {
+      setProcessing({});
     }
   };
 
   return (
-    <motion.div variants={itemVariants} className="w-full min-h-[100dvh] text-white px-4 pb-28 pt-6 bg-[#0f0f0f] overflow-y-auto">
-      <div className="max-w-md mx-auto space-y-5">
-        <h2 className="text-center text-lg font-bold text-white mb-2">Available Tasks</h2>
+    <div className="w-full">
+      <Card className="bg-white/10 border-none shadow-md">
+        <CardHeader>
+          <CardTitle className="text-white">Pending Manual Verifications</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Review tasks submitted by users that need manual approval.
+          </CardDescription>
+        </CardHeader>
 
-        <div className="bg-gradient-to-r from-sky-700 to-sky-900 p-4 rounded-xl flex items-center justify-between shadow">
-          <div>
-            <p className="text-sm text-white font-semibold">Play Game</p>
-            <p className="text-xs text-gray-300">Catch STON gems and earn rewards!</p>
-          </div>
-          <Button size="sm" onClick={handlePlayGame}>
-            <Gamepad2 className="mr-1 w-4 h-4" /> Play
-          </Button>
-        </div>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b border-white/10">
+                <TableHead className="text-white">User </TableHead>
+                <TableHead className="text-white">Task</TableHead>
+                <TableHead className="text-white">Target</TableHead>
+                <TableHead className="text-right text-white">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
 
-        {isLoading ? (
-          <div className="flex justify-center pt-10">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : (
-          tasks.filter(t => t.active).map(task => {
-            const isCheckInTask = task.type === 'daily_checkin';
-            const isCompleted = isCheckInTask ? checkInDone : user.tasks?.[task.id] === true;
-            const isPending = user.pendingVerificationTasks?.includes(task.id);
-            const targetUrl = task.type.includes('telegram') ? `https://t.me/${task.target.replace('@', '')}` : task.target;
-            const hasClicked = clickedTasks[task.id];
+            <TableBody>
+              {pendingItems.length > 0 ? (
+                pendingItems.map((item) => {
+                  const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
+                  const displayName = item.username || item.user?.username || item.firstName || item.user?.firstName || `User  ${userId}`;
+                  
+                  const taskId = item.taskId || item.task?.id;
+                  const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
+                  const taskTarget = item.target || item.task?.target || item.taskTarget || "N/A";
+                  
+                  const isHandle = taskTarget.startsWith('@');
+                  const isLink = taskTarget.startsWith('http');
+                  const link = isHandle
+                    ? `https://t.me/${taskTarget.replace('@', '')}`
+                    : isLink
+                    ? taskTarget
+                    : taskTarget
+                    ? `https://${taskTarget}`
+                    : null;
 
-            return (
-              <div key={task.id} className="bg-white/5 p-4 rounded-xl space-y-2 shadow-md">
-                <div className="flex flex-col">
-                  <p className="text-sm font-semibold text-white">{task.title}</p>
-                  <a
-                    href={targetUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-400 hover:underline"
-                  >
-                    {task.description}
-                  </a>
-                </div>
+                  const isProcessing = processing.userId === userId && processing.taskId === taskId;
+                  const isApproving = isProcessing && processing.action === 'approve';
+                  const isRejecting = isProcessing && processing.action === 'reject';
 
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-green-400 font-semibold">+{task.reward} STON</p>
+                  return (
+                    <TableRow key={`${userId}-${taskId}`} className="border-b border-white/10">
+                      <TableCell className="text-sm font-medium text-white">
+                        {displayName}
+                      </TableCell>
 
-                  {isCompleted ? (
-                    <Badge variant="success" className="text-xs">
-                      <CheckCircle className="h-3 w-3 mr-1" /> Done
-                    </Badge>
-                  ) : isPending ? (
-                    <Badge variant="warning" className="text-xs">
-                      <Clock className="h-3 w-3 mr-1" /> Pending
-                    </Badge>
-                  ) : isCheckInTask ? (
-                    <Button size="sm" onClick={handleCheckIn} disabled={isCompleted}>
-                      <CalendarCheck className="mr-1 h-4 w-4" /> {checkInDone ? 'Checked In' : 'Check In'}
-                    </Button>
-                  ) : task.type === 'referral' ? (
-                    <Badge variant="outline" className="text-white border-gray-300">Via Invites</Badge>
-                  ) : !hasClicked ? (
-                    <Button size="sm" onClick={() => handleGoToTask(task.id, targetUrl)}>
-                      Go <ArrowRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button size="sm" onClick={() => handleVerificationClick(task)}>
-                      {task.verificationType === 'auto' ? (
-                        <><CheckCircle className="mr-1 h-4 w-4" /> Verify</>
-                      ) : (
-                        <><HelpCircle className="mr-1 h-4 w-4" /> Request</>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </motion.div>
+                      <TableCell className="text-sm text-white">
+                        {taskTitle}
+                      </TableCell>
+
+                      <TableCell className="text-xs max-w-[150px] truncate">
+                        {link ? (
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:underline break-words"
+                          >
+                            {taskTarget}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">N/A</span>
+                        )}
+                      </TableCell>
+
+                      <TableCell className="text-right space-x-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-green-900/20 hover:bg-green-900/30 text-green-400 border-green-900/30"
+                          onClick={() => handleApprove(item)}
+                          disabled={isProcessing}
+                        >
+                          {isApproving ? (
+                            <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing</>
+                          ) : (
+                            <><Check className="mr-1 h-4 w-4" /> Approve</>
+                          )}
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          className="bg-red-900/20 hover:bg-red-900/30 text-red-400"
+                          onClick={() => handleReject(item)}
+                          disabled={isProcessing}
+                        >
+                          {isRejecting ? (
+                            <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing</>
+                          ) : (
+                            <><X className="mr-1 h-4 w-4" /> Reject</>
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    No tasks pending manual verification.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
-export default TasksSection;
+export default PendingVerificationTab;
+    
