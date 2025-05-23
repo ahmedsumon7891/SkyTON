@@ -58,7 +58,9 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
                       {displayName}
                     </TableCell>
 
-                    <TableCell className="text-sm text-white">{item.taskTitle}</TableCell>
+                    <TableCell className="text-sm text-white">
+                      {item.taskTitle || 'N/A'}
+                    </TableCell>
 
                     <TableCell className="text-xs max-w-[150px] truncate text-white">
                       {link ? (
@@ -111,3 +113,4 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
 };
 
 export default PendingVerificationTab;
+                          
