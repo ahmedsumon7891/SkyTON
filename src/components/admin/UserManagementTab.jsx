@@ -36,8 +36,8 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
     <motion.div className="w-full min-h-[100dvh] px-4 pb-28 pt-6 bg-[#0f0f0f] text-white overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-4">
         <div className="text-center">
-          <h2 className="text-xl font-bold">Manage Users</h2>
-          <p className="text-sm text-muted-foreground">Search and control user access</p>
+          <h2 className="text-xl font-bold text-[#FFD429]">Manage Users</h2>
+          <p className="text-sm text-[#BCCCDC]">Search and control user access</p>
         </div>
 
         <Input
@@ -45,7 +45,7 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
           placeholder="Search by ID, name, username, wallet..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-white/5 text-white placeholder:text-muted-foreground border-none focus-visible:ring-1 focus-visible:ring-primary"
+          className="bg-white/5 text-white placeholder:text-[#BCCCDC] border-white/10 focus-visible:ring-1 focus-visible:ring-primary"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -55,23 +55,23 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
               const fallback = (user.firstName || user.username || 'U').charAt(0).toUpperCase();
 
               return (
-                <Card key={user.telegramId} className="bg-white/5 border-none shadow-md">
-                  <CardContent className="p-4 space-y-2">
+                <Card key={user.telegramId} className="bg-white/10 border-none shadow-md overflow-hidden">
+                  <CardContent className="p-4 bg-[#483D8B] space-y-2">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-10 w-10 border-2 border-white/20">
                         <AvatarImage
                           src={user.profilePicUrl || `https://avatar.vercel.sh/${user.username || user.telegramId}.png?size=32`}
                           alt={user.username || 'avatar'}
                         />
-                        <AvatarFallback>{fallback}</AvatarFallback>
+                        <AvatarFallback className="bg-purple-900 text-white">{fallback}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-semibold">{displayName}</p>
-                        <p className="text-xs text-muted-foreground">@{user.username || 'N/A'}</p>
+                        <p className="text-sm font-semibold text-[#FFD429]">{displayName}</p>
+                        <p className="text-xs text-[#BCCCDC]">@{user.username || 'N/A'}</p>
                       </div>
                     </div>
 
-                    <div className="text-xs text-muted-foreground space-y-1">
+                    <div className="text-xs text-[#BCCCDC] space-y-1">
                       <p><span className="font-medium text-white">User ID:</span> {user.telegramId}</p>
                       <p><span className="font-medium text-white">Wallet:</span> {user.wallet ? `${user.wallet.slice(0, 6)}...${user.wallet.slice(-4)}` : 'N/A'}</p>
                       <p><span className="font-medium text-white">Joined:</span> {formatDate(user.joinedAt)}</p>
@@ -84,28 +84,32 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
                       <p className="text-sm">Refs: <span className="font-semibold text-sky-400">{user.referrals || 0}</span></p>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between pt-2 mt-2 border-t border-white/10">
                       <div className="flex gap-1">
-                        <Badge variant={user.isBanned ? 'destructive' : 'success'}>
+                        <Badge variant={user.isBanned ? 'destructive' : 'success'} 
+                          className={user.isBanned ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30' : 'bg-green-600/20 text-green-400 hover:bg-green-600/30'}>
                           {user.isBanned ? 'Banned' : 'Active'}
                         </Badge>
                         {user.isAdmin && (
-                          <Badge variant="secondary">Admin</Badge>
+                          <Badge variant="secondary" className="bg-amber-600/20 text-amber-400 hover:bg-amber-600/30">Admin</Badge>
                         )}
                       </div>
 
                       <Button
                         variant={user.isBanned ? 'outline' : 'destructive'}
                         size="sm"
+                        className={user.isBanned 
+                          ? "h-8 bg-white/5 border-white/10 hover:bg-white/10 text-white" 
+                          : "h-8 bg-red-900/25 hover:bg-red-900/30 text-red-600"}
                         onClick={() => handleBanToggle(user.telegramId, user.isBanned)}
                       >
                         {user.isBanned ? (
                           <>
-                            <CheckCircle className="h-4 w-4 mr-1" /> Unban
+                            <CheckCircle className="h-3.5 w-3.5 mr-1" /> Unban
                           </>
                         ) : (
                           <>
-                            <Ban className="h-4 w-4 mr-1" /> Ban
+                            <Ban className="h-3.5 w-3.5 mr-1" /> Ban
                           </>
                         )}
                       </Button>
@@ -115,7 +119,7 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
               );
             })
           ) : (
-            <p className="text-center text-muted-foreground col-span-2">No users match your search.</p>
+            <p className="text-center text-[#BCCCDC] col-span-2">No users match your search.</p>
           )}
         </div>
       </div>
@@ -124,3 +128,4 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
 };
 
 export default UserManagementTab;
+                              
