@@ -24,7 +24,6 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
   // Helper function to send messages to users
   const sendMessage = async (chatId, message) => {
     if (!chatId) {
-      // If we can't send to the intended recipient, try to notify admin
       sendAdminLog("Error: Missing chat ID for notification");
       return false;
     }
@@ -59,7 +58,6 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
         })
       });
     } catch (error) {
-      // If we can't even log to admin, there's not much we can do
       console.error("Failed to send admin log:", error);
     }
   };
@@ -76,7 +74,6 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
   }, [pendingItems]);
 
   const handleApprove = async (item) => {
-    // Extract the necessary IDs from the item
     const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
     const taskId = item.taskId || item.task?.id;
     
@@ -85,8 +82,7 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
       return;
     }
     
-    // Extract task details for the notification
-    const taskTitle = item.title || item.task?.title || item.taskTitle || "this task";
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
     const reward = item.reward || item.task?.reward || 0;
     
     setProcessing({ userId, taskId, action: 'approve' });
@@ -109,7 +105,6 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
   };
 
   const handleReject = async (item) => {
-    // Extract the necessary IDs from the item
     const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
     const taskId = item.taskId || item.task?.id;
     
@@ -118,8 +113,7 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
       return;
     }
     
-    // Extract task title for the notification
-    const taskTitle = item.title || item.task?.title || item.taskTitle || "this task";
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
     
     setProcessing({ userId, taskId, action: 'reject' });
     
@@ -154,7 +148,7 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
           <Table>
             <TableHeader>
               <TableRow className="border-b border-white/10">
-                <TableHead className="text-white">User</TableHead>
+                <TableHead className="text-white">User </TableHead>
                 <TableHead className="text-white">Task</TableHead>
                 <TableHead className="text-white">Target</TableHead>
                 <TableHead className="text-right text-white">Actions</TableHead>
@@ -164,17 +158,15 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
             <TableBody>
               {pendingItems.length > 0 ? (
                 pendingItems.map((item) => {
-                  // Extract data from the item structure with more fallback options
                   const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
-                  const displayName = item.username || item.user?.username || item.firstName || item.user?.firstName || `User ${userId}`;
+                  const displayName = item.username || item.user?.username || item.firstName || item.user?.firstName || `User  ${userId}`;
                   
-                  // For task data, check all possible property paths
                   const taskId = item.taskId || item.task?.id;
                   const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
-                  const taskTarget = item.target || item.task?.target || item.taskTarget || "";
+                  const taskTarget = item.target || item.task?.target || item.taskTarget || "N/A";
                   
-                  const isHandle = taskTarget?.startsWith('@');
-                  const isLink = taskTarget?.startsWith('http');
+                  const isHandle = taskTarget.startsWith('@');
+                  const isLink = taskTarget.startsWith('http');
                   const link = isHandle
                     ? `https://t.me/${taskTarget.replace('@', '')}`
                     : isLink
@@ -259,4 +251,4 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
 };
 
 export default PendingVerificationTab;
-                   
+        
