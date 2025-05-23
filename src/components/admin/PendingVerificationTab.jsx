@@ -19,58 +19,139 @@ import { Check, X, Loader2 } from 'lucide-react';
 
 const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
   const [processing, setProcessing] = useState({});
+  const ADMIN_CHAT_ID = '5063003944'; // Replace with your admin chat ID
 
   // Helper function to send messages to users
-  const sendUserNotification = async (userId, message) => {
+  const sendMessage = async (chatId, message) => {
+    if (!chatId) {
+      // If we can't send to the intended recipient, try to notify admin
+      sendAdminLog("Error: Missing chat ID for notification");
+      return false;
+    }
+    
     try {
       await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: userId,
+          chat_id: chatId,
           text: message,
           parse_mode: 'HTML'
         })
       });
       return true;
     } catch (err) {
-      console.error("Failed to send user notification:", err);
+      sendAdminLog(`Error sending message to ${chatId}: ${err.message}`);
       return false;
     }
   };
 
-  const handleApprove = async (userId, taskId, taskTitle, reward) => {
+  // Send logs to admin
+  const sendAdminLog = async (message) => {
+    try {
+      await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ADMIN_CHAT_ID,
+          text: `🔍 <b>Debug Log</b>:\n${message}`,
+          parse_mode: 'HTML'
+        })
+      });
+    } catch (error) {
+      // If we can't even log to admin, there's not much we can do
+      console.error("Failed to send admin log:", error);
+    }
+  };
+
+  // Send the structure of pendingItems to admin for debugging
+  React.useEffect(() => {
+    if (pendingItems && pendingItems.length > 0) {
+      const firstItem = pendingItems[0];
+      const itemStructure = JSON.stringify(firstItem, null, 2);
+      sendAdminLog(`First pending item structure:\n<pre>${itemStructure}</pre>`);
+    } else {
+      sendAdminLog("No pending items available");
+    }
+  }, [pendingItems]);
+
+  const handleApprove = async (item) => {
+    // Log the item we're trying to approve
+    sendAdminLog(`Approving item: ${JSON.stringify(item, null, 2)}`);
+    
+    // Extract the necessary IDs from the item
+    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
+    const taskId = item.taskId || item.task?.id;
+    
+    if (!userId || !taskId) {
+      sendAdminLog(`Cannot approve: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
+      return;
+    }
+    
+    // Extract task details for the notification
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "this task";
+    const reward = item.reward || item.task?.reward || 0;
+    
     setProcessing({ userId, taskId, action: 'approve' });
     
     // Call the original onApprove function
-    const success = await onApprove(userId, taskId);
-    
-    // Send notification to user
-    if (success) {
-      await sendUserNotification(
-        userId, 
-        `✅ <b>Task Approved!</b>\n\nYour task "<b>${taskTitle}</b>" has been verified and approved.\n\n<b>+${reward} STON</b> has been added to your balance.`
-      );
+    try {
+      const success = await onApprove(userId, taskId);
+      
+      // Send notification to user
+      if (success) {
+        await sendMessage(
+          userId, 
+          `✅ <b>Task Approved!</b>\n\nYour task "<b>${taskTitle}</b>" has been verified and approved.\n\n<b>+${reward} STON</b> has been added to your balance.`
+        );
+        sendAdminLog(`Successfully approved task for user ${userId}`);
+      } else {
+        sendAdminLog(`Failed to approve task for user ${userId}`);
+      }
+    } catch (error) {
+      sendAdminLog(`Error during approval: ${error.message}`);
+    } finally {
+      setProcessing({});
     }
-    
-    setProcessing({});
   };
 
-  const handleReject = async (userId, taskId, taskTitle) => {
+  const handleReject = async (item) => {
+    // Log the item we're trying to reject
+    sendAdminLog(`Rejecting item: ${JSON.stringify(item, null, 2)}`);
+    
+    // Extract the necessary IDs from the item
+    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
+    const taskId = item.taskId || item.task?.id;
+    
+    if (!userId || !taskId) {
+      sendAdminLog(`Cannot reject: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
+      return;
+    }
+    
+    // Extract task title for the notification
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "this task";
+    
     setProcessing({ userId, taskId, action: 'reject' });
     
     // Call the original onReject function
-    const success = await onReject(userId, taskId);
-    
-    // Send notification to user
-    if (success) {
-      await sendUserNotification(
-        userId, 
-        `❌ <b>Task Rejected</b>\n\nYour task "<b>${taskTitle}</b>" verification request has been rejected.\n\nPlease make sure you've completed the task correctly and try again.`
-      );
+    try {
+      const success = await onReject(userId, taskId);
+      
+      // Send notification to user
+      if (success) {
+        await sendMessage(
+          userId, 
+          `❌ <b>Task Rejected</b>\n\nYour task "<b>${taskTitle}</b>" verification request has been rejected.\n\nPlease make sure you've completed the task correctly and try again.`
+        );
+        sendAdminLog(`Successfully rejected task for user ${userId}`);
+      } else {
+        sendAdminLog(`Failed to reject task for user ${userId}`);
+      }
+    } catch (error) {
+      sendAdminLog(`Error during rejection: ${error.message}`);
+    } finally {
+      setProcessing({});
     }
-    
-    setProcessing({});
   };
 
   return (
@@ -97,16 +178,14 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
             <TableBody>
               {pendingItems.length > 0 ? (
                 pendingItems.map((item) => {
-                  // Extract data from the item structure
-                  // This is the key part to fix the "Unknown Task" and "N/A" issues
-                  const userId = item.userId || item.user?.id;
+                  // Extract data from the item structure with more fallback options
+                  const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
                   const displayName = item.username || item.user?.username || item.firstName || item.user?.firstName || `User ${userId}`;
                   
-                  // For task data, we need to check both direct properties and nested task object
+                  // For task data, check all possible property paths
                   const taskId = item.taskId || item.task?.id;
                   const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
                   const taskTarget = item.target || item.task?.target || item.taskTarget || "";
-                  const reward = item.reward || item.task?.reward || 0;
                   
                   const isHandle = taskTarget?.startsWith('@');
                   const isLink = taskTarget?.startsWith('http');
@@ -152,7 +231,7 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
                           variant="outline"
                           size="sm"
                           className="bg-green-900/20 hover:bg-green-900/30 text-green-400 border-green-900/30"
-                          onClick={() => handleApprove(userId, taskId, taskTitle, reward)}
+                          onClick={() => handleApprove(item)}
                           disabled={isProcessing}
                         >
                           {isApproving ? (
@@ -165,7 +244,7 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
                           variant="destructive" 
                           size="sm"
                           className="bg-red-900/20 hover:bg-red-900/30 text-red-400"
-                          onClick={() => handleReject(userId, taskId, taskTitle)}
+                          onClick={() => handleReject(item)}
                           disabled={isProcessing}
                         >
                           {isRejecting ? (
@@ -194,4 +273,4 @@ const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
 };
 
 export default PendingVerificationTab;
-    
+          
