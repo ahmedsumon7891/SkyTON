@@ -66,15 +66,15 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
                         <AvatarFallback className="bg-purple-900 text-white">{fallback}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-semibold text-[#FFD429]">{displayName}</p>
+                        <p className="text-sm font-semibold text-text-sky-300">{displayName}</p>
                         <p className="text-xs text-[#BCCCDC]">@{user.username || 'N/A'}</p>
                       </div>
                     </div>
 
-                    <div className="text-xs text-[#BCCCDC] space-y-1">
-                      <p><span className="font-medium text-white">User ID:</span> {user.telegramId}</p>
-                      <p><span className="font-medium text-white">Wallet:</span> {user.wallet ? `${user.wallet.slice(0, 6)}...${user.wallet.slice(-4)}` : 'N/A'}</p>
-                      <p><span className="font-medium text-white">Joined:</span> {formatDate(user.joinedAt)}</p>
+                    <div className="text-xs text-[#FFD429] space-y-1">
+                      <p><span className="font-medium text-[#BCCCDC]">User ID:</span> {user.telegramId}</p>
+                      <p><span className="font-medium text-[#BCCCDC]">Wallet:</span> {user.wallet ? `${user.wallet.slice(0, 6)}...${user.wallet.slice(-4)}` : 'N/A'}</p>
+                      <p><span className="font-medium text-[#BCCCDC]">Joined:</span> {formatDate(user.joinedAt)}</p>
                     </div>
 
                     <div className="flex items-center justify-between pt-2">
