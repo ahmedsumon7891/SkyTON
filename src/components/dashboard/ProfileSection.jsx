@@ -14,7 +14,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
   const { toast } = useToast();
 
   // Get admin Telegram username from environment variable, fallback to empty string
-  const adminUsername = import.meta.env.ADMIN_TG_USERNAME;
+  const adminUsername = import.meta.env.VITE_ADMIN_TG_USERNAME;
 
   // Check if user is banned
   const isBanned = user.isBanned;
