@@ -66,7 +66,7 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
                         <AvatarFallback className="bg-purple-900 text-white">{fallback}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-semibold text-text-sky-300">{displayName}</p>
+                        <p className="text-sm font-semibold text-sky-300">{displayName}</p>
                         <p className="text-xs text-[#BCCCDC]">@{user.username || 'N/A'}</p>
                       </div>
                     </div>
