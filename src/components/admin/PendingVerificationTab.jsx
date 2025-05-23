@@ -127,108 +127,114 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
 
   return (
     <div className="w-full">
-      <Card className="bg-white/10 border-none shadow-md">
-        <CardHeader>
-          <CardTitle className="text-white">Pending Manual Verifications</CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Review tasks submitted by users that need manual approval.
-          </CardDescription>
-        </CardHeader>
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-bold text-[#FFD429]">Pending Manual Verifications</h2>
+        <p className="text-sm text-[#BCCCDC]">Review tasks submitted by users that need manual approval</p>
+      </div>
 
-        <CardContent>
-          {pendingItems.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              No tasks pending manual verification.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {pendingItems.map((item) => {
-                const { userId, taskId, taskTitle, taskTarget, reward, username } = getItemInfo(item);
-                const link = generateLink(taskTarget);
-                const isProcessing = processing.userId === userId && processing.taskId === taskId;
-                const isApproving = isProcessing && processing.action === 'approve';
-                const isRejecting = isProcessing && processing.action === 'reject';
+      {pendingItems.length === 0 ? (
+        <div className="text-center text-[#BCCCDC] py-8">
+          No tasks pending manual verification.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {pendingItems.map((item) => {
+            const { userId, taskId, taskTitle, taskTarget, reward, username } = getItemInfo(item);
+            const link = generateLink(taskTarget);
+            const isProcessing = processing.userId === userId && processing.taskId === taskId;
+            const isApproving = isProcessing && processing.action === 'approve';
+            const isRejecting = isProcessing && processing.action === 'reject';
 
-                return (
-                  <div
-                    key={`${userId}-${taskId}`}
-                    className="bg-[#181f2a] rounded-xl shadow-lg p-5 flex flex-col justify-between min-h-[220px] border border-white/10"
-                  >
-                    <div className="mb-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-gray-400">User:</span>
-                        <span className="font-semibold text-white truncate">{username}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-gray-400">Task:</span>
-                        <span className="font-semibold text-sky-300 truncate">{taskTitle}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-gray-400">Target:</span>
-                        {link ? (
-                          <a
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:underline break-all"
-                          >
-                            {taskTarget}
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground">N/A</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-gray-400">Reward:</span>
-                        <span className="text-green-400 font-semibold">+{reward} STON</span>
-                      </div>
+            return (
+              <Card 
+                key={`${userId}-${taskId}`}
+                className="bg-white/10 border-none shadow-md overflow-hidden"
+              >
+                <CardContent className="p-4 bg-[#483D8B] space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-bold text-[#FFD429] truncate pr-2">{taskTitle}</h3>
                     </div>
-                    <div className="flex gap-2 mt-auto">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 bg-green-900/20 hover:bg-green-900/30 text-green-400 border-green-900/30"
-                        onClick={() => handleApprove(item)}
-                        disabled={isProcessing}
-                      >
-                        {isApproving ? (
-                          <>
-                            <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Approving...
-                          </>
-                        ) : (
-                          <>
-                            <Check className="mr-1 h-4 w-4" /> Approve
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="flex-1 bg-red-900/20 hover:bg-red-900/30 text-red-400"
-                        onClick={() => handleReject(item)}
-                        disabled={isProcessing}
-                      >
-                        {isRejecting ? (
-                          <>
-                            <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Rejecting...
-                          </>
-                        ) : (
-                          <>
-                            <X className="mr-1 h-4 w-4" /> Reject
-                          </>
-                        )}
-                      </Button>
+                    
+                    <div className="grid grid-cols-2 gap-y-2 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <div>
+                          <span className="text-[#BCCCDC]">User: </span>
+                          <span className="text-white">{username}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1.5">
+                        <div>
+                          <span className="text-[#BCCCDC]">Reward: </span>
+                          <span className="text-green-400 font-semibold">{reward} STON</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1.5 col-span-2">
+                        <div className="overflow-hidden">
+                          <span className="text-[#BCCCDC]">Target: </span>
+                          {link ? (
+                            <a
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:underline break-all"
+                            >
+                              {taskTarget}
+                            </a>
+                          ) : (
+                            <span className="text-white">N/A</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  
+                  <div className="flex items-center justify-between gap-2 pt-2 mt-2 border-t border-white/10">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-8 bg-green-900/20 hover:bg-green-900/30 text-green-400 border-green-900/30"
+                      onClick={() => handleApprove(item)}
+                      disabled={isProcessing}
+                    >
+                      {isApproving ? (
+                        <>
+                          <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> Approving...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="mr-1 h-3.5 w-3.5" /> Approve
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="flex-1 h-8 bg-red-900/20 hover:bg-red-900/30 text-red-400"
+                      onClick={() => handleReject(item)}
+                      disabled={isProcessing}
+                    >
+                      {isRejecting ? (
+                        <>
+                          <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> Rejecting...
+                        </>
+                      ) : (
+                        <>
+                          <X className="mr-1 h-3.5 w-3.5" /> Reject
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
 
 export default PendingVerificationTab;
-        
