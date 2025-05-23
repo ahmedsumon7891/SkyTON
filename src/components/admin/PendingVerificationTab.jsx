@@ -17,13 +17,20 @@ import {
 } from '@/components/ui/table';
 import { Check, X, Loader2 } from 'lucide-react';
 
-const PendingVerificationTab = ({ pendingItems = [] }) => {
+const PendingVerificationTab = ({ pendingItems = [], onApprove, onReject }) => {
   const [processing, setProcessing] = useState({});
-  const BOT_TOKEN = import.meta.env.VITE_TG_BOT_TOKEN;
+  const ADMIN_CHAT_ID = '5063003944'; // Replace with your admin chat ID
 
+  // Helper function to send messages to users
   const sendMessage = async (chatId, message) => {
+    if (!chatId) {
+      // If we can't send to the intended recipient, try to notify admin
+      sendAdminLog("Error: Missing chat ID for notification");
+      return false;
+    }
+    
     try {
-      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -32,42 +39,105 @@ const PendingVerificationTab = ({ pendingItems = [] }) => {
           parse_mode: 'HTML'
         })
       });
-    } catch (error) {
-      console.error(`Failed to send message to ${chatId}:`, error);
+      return true;
+    } catch (err) {
+      sendAdminLog(`Error sending message to ${chatId}: ${err.message}`);
+      return false;
     }
   };
 
+  // Send logs to admin
+  const sendAdminLog = async (message) => {
+    try {
+      await fetch(`https://api.telegram.org/bot${import.meta.env.VITE_TG_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ADMIN_CHAT_ID,
+          text: `🔍 <b>Debug Log</b>:\n${message}`,
+          parse_mode: 'HTML'
+        })
+      });
+    } catch (error) {
+      // If we can't even log to admin, there's not much we can do
+      console.error("Failed to send admin log:", error);
+    }
+  };
+
+  // Send the structure of pendingItems to admin for debugging
+  React.useEffect(() => {
+    if (pendingItems && pendingItems.length > 0) {
+      const firstItem = pendingItems[0];
+      const itemStructure = JSON.stringify(firstItem, null, 2);
+      sendAdminLog(`First pending item structure:\n<pre>${itemStructure}</pre>`);
+    } else {
+      sendAdminLog("No pending items available");
+    }
+  }, [pendingItems]);
+
   const handleApprove = async (item) => {
-    const userId = item.userId || item.user?.id;
-    const taskTitle = item.taskTitle || item.task?.title || 'a task';
-    const reward = item.taskReward || item.task?.reward || 0;
-
-    if (!userId) return;
-
-    setProcessing({ userId, taskId: item.taskId, action: 'approve' });
-
-    await sendMessage(
-      userId,
+    // Extract the necessary IDs from the item
+    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
+    const taskId = item.taskId || item.task?.id;
+    
+    if (!userId || !taskId) {
+      sendAdminLog(`Cannot approve: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
+      return;
+    }
+    
+    // Extract task details for the notification
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "this task";
+    const reward = item.reward || item.task?.reward || 0;
+    
+    setProcessing({ userId, taskId, action: 'approve' });
+    
+    // Send notification to user immediately
+    sendMessage(
+      userId, 
       `✅ <b>Task Approved!</b>\n\nYour task "<b>${taskTitle}</b>" has been verified and approved.\n\n<b>+${reward} STON</b> has been added to your balance.`
     );
-
-    setProcessing({});
+    
+    // Call the original onApprove function
+    try {
+      await onApprove(userId, taskId);
+      sendAdminLog(`Approval process initiated for user ${userId}`);
+    } catch (error) {
+      sendAdminLog(`Error during approval: ${error.message}`);
+    } finally {
+      setProcessing({});
+    }
   };
 
   const handleReject = async (item) => {
-    const userId = item.userId || item.user?.id;
-    const taskTitle = item.taskTitle || item.task?.title || 'a task';
-
-    if (!userId) return;
-
-    setProcessing({ userId, taskId: item.taskId, action: 'reject' });
-
-    await sendMessage(
-      userId,
+    // Extract the necessary IDs from the item
+    const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
+    const taskId = item.taskId || item.task?.id;
+    
+    if (!userId || !taskId) {
+      sendAdminLog(`Cannot reject: Missing user ID or task ID. userId: ${userId}, taskId: ${taskId}`);
+      return;
+    }
+    
+    // Extract task title for the notification
+    const taskTitle = item.title || item.task?.title || item.taskTitle || "this task";
+    
+    setProcessing({ userId, taskId, action: 'reject' });
+    
+    // Send notification to user immediately
+    sendMessage(
+      userId, 
       `❌ <b>Task Rejected</b>\n\nYour task "<b>${taskTitle}</b>" verification request has been rejected.\n\nPlease make sure you've completed the task correctly and try again.`
     );
-
-    setProcessing({});
+    
+    // Call the original onReject function
+    try {
+      await onReject(userId, taskId);
+      sendAdminLog(`Rejection process initiated for user ${userId}`);
+    } catch (error) {
+      sendAdminLog(`Error during rejection: ${error.message}`);
+    } finally {
+      setProcessing({});
+    }
   };
 
   return (
@@ -76,7 +146,7 @@ const PendingVerificationTab = ({ pendingItems = [] }) => {
         <CardHeader>
           <CardTitle className="text-white">Pending Manual Verifications</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Approve or reject user tasks via Telegram bot messages only.
+            Review tasks submitted by users that need manual approval.
           </CardDescription>
         </CardHeader>
 
@@ -90,28 +160,58 @@ const PendingVerificationTab = ({ pendingItems = [] }) => {
                 <TableHead className="text-right text-white">Actions</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {pendingItems.length > 0 ? (
                 pendingItems.map((item) => {
-                  const userId = item.userId || item.user?.id;
-                  const displayName = item.username || item.firstName || `User ${userId}`;
-                  const taskTitle = item.taskTitle || item.task?.title || 'Unknown Task';
-                  const taskTarget = item.taskTarget || item.task?.target || 'N/A';
+                  // Extract data from the item structure with more fallback options
+                  const userId = item.userId || item.user?.id || item.telegramId || item.user?.telegramId;
+                  const displayName = item.username || item.user?.username || item.firstName || item.user?.firstName || `User ${userId}`;
+                  
+                  // For task data, check all possible property paths
+                  const taskId = item.taskId || item.task?.id;
+                  const taskTitle = item.title || item.task?.title || item.taskTitle || "Unknown Task";
+                  const taskTarget = item.target || item.task?.target || item.taskTarget || "";
+                  
+                  const isHandle = taskTarget?.startsWith('@');
+                  const isLink = taskTarget?.startsWith('http');
+                  const link = isHandle
+                    ? `https://t.me/${taskTarget.replace('@', '')}`
+                    : isLink
+                    ? taskTarget
+                    : taskTarget
+                    ? `https://${taskTarget}`
+                    : null;
 
-                  const isProcessing =
-                    processing.userId === userId && processing.taskId === item.taskId;
+                  const isProcessing = processing.userId === userId && processing.taskId === taskId;
                   const isApproving = isProcessing && processing.action === 'approve';
                   const isRejecting = isProcessing && processing.action === 'reject';
 
                   return (
-                    <TableRow key={`${userId}-${item.taskId}`} className="border-b border-white/10">
+                    <TableRow key={`${userId}-${taskId}`} className="border-b border-white/10">
                       <TableCell className="text-sm font-medium text-white">
                         {displayName}
                       </TableCell>
-                      <TableCell className="text-sm text-white">{taskTitle}</TableCell>
-                      <TableCell className="text-xs max-w-[150px] truncate text-white">
-                        {taskTarget}
+
+                      <TableCell className="text-sm text-white">
+                        {taskTitle}
                       </TableCell>
+
+                      <TableCell className="text-xs max-w-[150px] truncate">
+                        {link ? (
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:underline break-words"
+                          >
+                            {taskTarget}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">N/A</span>
+                        )}
+                      </TableCell>
+
                       <TableCell className="text-right space-x-1">
                         <Button
                           variant="outline"
@@ -121,30 +221,22 @@ const PendingVerificationTab = ({ pendingItems = [] }) => {
                           disabled={isProcessing}
                         >
                           {isApproving ? (
-                            <>
-                              <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing
-                            </>
+                            <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing</>
                           ) : (
-                            <>
-                              <Check className="mr-1 h-4 w-4" /> Approve
-                            </>
+                            <><Check className="mr-1 h-4 w-4" /> Approve</>
                           )}
                         </Button>
-                        <Button
-                          variant="destructive"
+                        <Button 
+                          variant="destructive" 
                           size="sm"
                           className="bg-red-900/20 hover:bg-red-900/30 text-red-400"
                           onClick={() => handleReject(item)}
                           disabled={isProcessing}
                         >
                           {isRejecting ? (
-                            <>
-                              <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing
-                            </>
+                            <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Processing</>
                           ) : (
-                            <>
-                              <X className="mr-1 h-4 w-4" /> Reject
-                            </>
+                            <><X className="mr-1 h-4 w-4" /> Reject</>
                           )}
                         </Button>
                       </TableCell>
@@ -167,3 +259,4 @@ const PendingVerificationTab = ({ pendingItems = [] }) => {
 };
 
 export default PendingVerificationTab;
+                   
