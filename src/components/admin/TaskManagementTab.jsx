@@ -56,14 +56,14 @@ const TaskManagementTab = ({
     <motion.div className="w-full min-h-[100dvh] px-4 pb-28 pt-6 bg-[#0f0f0f] text-white overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-4">
         <div className="text-center">
-          <h2 className="text-xl font-bold">Manage Tasks</h2>
-          <p className="text-sm text-muted-foreground">Create and manage tasks for users</p>
+          <h2 className="text-xl font-bold text-[#FFD429]">Manage Tasks</h2>
+          <p className="text-sm text-[#BCCCDC]">Create and manage tasks for users</p>
         </div>
 
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-white">Current Tasks</h3>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{tasks.length} task(s)</span>
+            <span className="text-sm text-[#BCCCDC]">{tasks.length} task(s)</span>
             <Button 
               onClick={openForm} 
               className="bg-primary hover:bg-primary/90 text-white"
@@ -96,7 +96,7 @@ const TaskManagementTab = ({
               taskData={editingTask || newTask}
               isEditing={!!editingTask}
               onChange={editingTask ? handleEditingTaskChange : handleNewTaskChange}
-              onActiveChange={editingTask ? handleEditingTaskActiveChange : undefined}
+              onActiveChange={editingTask ? handleEditingTaskActiveChange : handleNewTaskActiveChange}
               onVerificationTypeChange={
                 editingTask
                   ? handleEditingTaskVerificationTypeChange
@@ -112,5 +112,4 @@ const TaskManagementTab = ({
   );
 };
 
-export default TaskManagementTab;
-            
+export default TaskManagementTab;                
