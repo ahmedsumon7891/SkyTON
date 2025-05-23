@@ -143,11 +143,7 @@ const TasksSection = ({ tasks = [], user = {}, refreshUserData, isLoading }) => 
       });
     } else {
       // In TasksSection.jsx
-      success = await requestManualVerification(user.id, task.id, {
-        title: task.title,
-        target: task.target,
-        reward: task.reward
-      });
+      success = await requestManualVerification(user.id, task.id);
 
       if (success) {
         const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
