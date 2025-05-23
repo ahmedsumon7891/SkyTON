@@ -129,11 +129,11 @@ const PendingVerificationTab = ({ pendingItems = [], tasks = [], onApprove, onRe
     <div className="w-full">
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-[#FFD429]">Pending Manual Verifications</h2>
-        <p className="text-sm text-[#BCCCDC]">Review tasks submitted by users that need manual approval</p>
+        <p className="text-sm text-muted-foreground">Review tasks submitted by users that need manual approval</p>
       </div>
 
       {pendingItems.length === 0 ? (
-        <div className="text-center text-[#BCCCDC] py-8">
+        <div className="text-center text-muted-foreground py-8">
           No tasks pending manual verification.
         </div>
       ) : (
