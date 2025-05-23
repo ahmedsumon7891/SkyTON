@@ -13,18 +13,18 @@ import {
   arrayRemove,
   Timestamp
 } from "firebase/firestore";
-import { defaultFirestoreUser  } from '@/data/defaults';
+import { defaultFirestoreUser } from '@/data/defaults';
 import { generateReferralLink } from '@/data/telegramUtils';
 import { getTask } from '@/data/firestore/taskActions';
 
 // Create or return existing user
-export const getOrCreateUser  = async (telegramUser Data) => {
-  if (!telegramUser Data || !telegramUser Data.id) {
+export const getOrCreateUser = async (telegramUserData) => {
+  if (!telegramUserData || !telegramUserData.id) {
     console.error("Missing Telegram data.");
     return null;
   }
 
-  const userId = telegramUser Data.id;
+  const userId = telegramUserData.id;
   const userRef = doc(db, "users", userId);
 
   try {
@@ -38,14 +38,14 @@ export const getOrCreateUser  = async (telegramUser Data) => {
         updates.referralLink = generateReferralLink(userId);
       }
 
-      if (telegramUser Data.username && existingData.username !== telegramUser Data.username)
-        updates.username = telegramUser Data.username;
-      if (telegramUser Data.firstName && existingData.firstName !== telegramUser Data.firstName)
-        updates.firstName = telegramUser Data.firstName;
-      if (telegramUser Data.lastName && existingData.lastName !== telegramUser Data.lastName)
-        updates.lastName = telegramUser Data.lastName;
-      if (telegramUser Data.profilePicUrl && existingData.profilePicUrl !== telegramUser Data.profilePicUrl)
-        updates.profilePicUrl = telegramUser Data.profilePicUrl;
+      if (telegramUserData.username && existingData.username !== telegramUserData.username)
+        updates.username = telegramUserData.username;
+      if (telegramUserData.firstName && existingData.firstName !== telegramUserData.firstName)
+        updates.firstName = telegramUserData.firstName;
+      if (telegramUserData.lastName && existingData.lastName !== telegramUserData.lastName)
+        updates.lastName = telegramUserData.lastName;
+      if (telegramUserData.profilePicUrl && existingData.profilePicUrl !== telegramUserData.profilePicUrl)
+        updates.profilePicUrl = telegramUserData.profilePicUrl;
 
       if (Object.keys(updates).length > 0) {
         await updateDoc(userRef, updates);
@@ -54,29 +54,29 @@ export const getOrCreateUser  = async (telegramUser Data) => {
 
       return { id: userId, ...existingData };
     } else {
-      const newUser  = defaultFirestoreUser (
+      const newUser = defaultFirestoreUser(
         userId,
-        telegramUser Data.username,
-        telegramUser Data.firstName,
-        telegramUser Data.lastName,
+        telegramUserData.username,
+        telegramUserData.firstName,
+        telegramUserData.lastName,
         null
       );
-      newUser .profilePicUrl = telegramUser Data.profilePicUrl;
-      newUser .referralLink = generateReferralLink(userId);
+      newUser.profilePicUrl = telegramUserData.profilePicUrl;
+      newUser.referralLink = generateReferralLink(userId);
 
-      await setDoc(userRef, { ...newUser , joinedAt: serverTimestamp() });
-      return { id: userId, ...newUser  };
+      await setDoc(userRef, { ...newUser, joinedAt: serverTimestamp() });
+      return { id: userId, ...newUser };
     }
   } catch (error) {
-    console.error("Error in getOrCreateUser :", error);
+    console.error("Error in getOrCreateUser:", error);
     return null;
   }
 };
 
 // Update user fields
-export const updateUser  = async (userId, updates) => {
+export const updateUser = async (userId, updates) => {
   if (!userId) {
-    console.error("User  ID required for update.");
+    console.error("User ID required for update.");
     return false;
   }
   try {
@@ -89,7 +89,7 @@ export const updateUser  = async (userId, updates) => {
 };
 
 // Fetch user by ID
-export const getUser  = async (userId) => {
+export const getUser = async (userId) => {
   if (!userId) return null;
   try {
     const userSnap = await getDoc(doc(db, "users", userId));
@@ -100,11 +100,11 @@ export const getUser  = async (userId) => {
   }
 };
 
-// Alias for clarity (same as getUser )
-export const getUser ById = getUser ;
+// Alias
+export const getUserById = getUser;
 
 // Mark a task complete and update balance
-export const completeTaskForUser  = async (userId, taskId) => {
+export const completeTaskForUser = async (userId, taskId) => {
   if (!userId || !taskId) return false;
 
   const userRef = doc(db, "users", userId);
@@ -128,7 +128,7 @@ export const completeTaskForUser  = async (userId, taskId) => {
 };
 
 // Request manual task verification
-export const requestManualVerificationForUser  = async (userId, taskId) => {
+export const requestManualVerificationForUser = async (userId, taskId) => {
   if (!userId || !taskId) return false;
 
   const userRef = doc(db, "users", userId);
@@ -136,14 +136,12 @@ export const requestManualVerificationForUser  = async (userId, taskId) => {
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
       const userData = userSnap.data();
-      if (userData.tasks?.[taskId]) return false; // Task already completed
-      if (userData.pendingVerificationTasks?.includes(taskId)) return true; // Already pending
+      if (userData.tasks?.[taskId]) return false;
+      if (userData.pendingVerificationTasks?.includes(taskId)) return true;
 
-      // Fetch task details if needed
       const task = await getTask(taskId);
-      if (!task) return false; // Task does not exist
+      if (!task) return false;
 
-      // Add task details to pending verification
       await updateDoc(userRef, {
         pendingVerificationTasks: arrayUnion(taskId),
         [`pendingVerificationDetails.${taskId}`]: {
@@ -161,7 +159,7 @@ export const requestManualVerificationForUser  = async (userId, taskId) => {
 };
 
 // Reject manual verification
-export const rejectManualVerificationForUser  = async (userId, taskId) => {
+export const rejectManualVerificationForUser = async (userId, taskId) => {
   if (!userId || !taskId) return false;
   try {
     await updateDoc(doc(db, "users", userId), {
@@ -175,8 +173,8 @@ export const rejectManualVerificationForUser  = async (userId, taskId) => {
 };
 
 // Daily check-in
-export const performCheckInForUser  = async (userId) => {
-  if (!userId) return { success: false, message: 'User  ID required.' };
+export const performCheckInForUser = async (userId) => {
+  if (!userId) return { success: false, message: 'User ID required.' };
 
   const userRef = doc(db, "users", userId);
   const checkInTaskId = 'task_daily_checkin';
@@ -185,7 +183,7 @@ export const performCheckInForUser  = async (userId) => {
 
   try {
     const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return { success: false, message: 'User  not found.' };
+    if (!userSnap.exists()) return { success: false, message: 'User not found.' };
 
     const userData = userSnap.data();
     const lastCheckIn = userData.lastCheckIn;
@@ -229,7 +227,7 @@ export const getAllUsers = async () => {
 };
 
 // Toggle ban status
-export const toggleUser BanStatus = async (telegramId, newStatus) => {
+export const toggleUserBanStatus = async (telegramId, newStatus) => {
   try {
     await updateDoc(doc(db, "users", telegramId.toString()), {
       isBanned: newStatus
