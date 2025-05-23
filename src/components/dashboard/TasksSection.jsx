@@ -8,7 +8,7 @@ import {
   completeTask,
   performCheckIn,
   requestManualVerification,
-  getCurrentUser,
+  getCurrentUser ,
   isCheckInDoneToday
 } from '@/data';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +18,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 }
 };
 
-const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
+const TasksSection = ({ tasks = [], user, refreshUser Data, isLoading, setPendingItems }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [clickedTasks, setClickedTasks] = useState({});
@@ -27,7 +27,7 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
 
   const handlePlayGame = () => {
     if (user?.id) {
-      sessionStorage.setItem('gameUserId', user.id);
+      sessionStorage.setItem('gameUser Id', user.id);
       navigate('/game');
     }
   };
@@ -41,8 +41,8 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
     if (!user?.id) return;
     const result = await performCheckIn(user.id);
     if (result.success) {
-      const updatedUser = await getCurrentUser(user.id);
-      if (updatedUser) refreshUserData(updatedUser);
+      const updatedUser  = await getCurrentUser (user.id);
+      if (updatedUser ) refreshUser Data(updatedUser );
       toast({ title: 'Daily Check-in Successful!', description: `+${result.reward} STON`, variant: 'success' });
     } else {
       toast({ title: 'Check-in Failed', description: result.message || 'Try again later.', variant: 'default' });
@@ -73,6 +73,19 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
     const isPending = user.pendingVerificationTasks?.includes(task.id);
     if (isCompleted || isPending) return;
 
+    // Prepare task data for PendingVerificationTab
+    const taskData = {
+      userId: user.id,
+      taskId: task.id,
+      title: task.title,
+      reward: task.reward,
+      target: task.target,
+      verificationType: task.verificationType
+    };
+
+    // Add task data to pending items
+    setPendingItems(prev => [...prev, taskData]);
+
     // Telegram join + auto verify
     if (task.verificationType === 'auto' && task.type === 'telegram_join') {
       try {
@@ -86,11 +99,11 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
             const verified = await completeTask(user.id, task.id);
             if (verified) {
               // Send success notification to admin
-              const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
+              const userMention = user.username ? `@${user.username}` : `User  ${user.id}`;
               await sendAdminNotification(`✅ <b>Auto-Verification Success</b>\n${userMention} successfully joined <b>${task.title}</b> (${task.target})\nReward: +${task.reward} STON`);
               
-              const updatedUser = await getCurrentUser(user.id);
-              if (updatedUser) refreshUserData(updatedUser);
+              const updatedUser  = await getCurrentUser (user.id);
+              if (updatedUser ) refreshUser Data(updatedUser );
               toast({ title: 'Joined Verified', description: `+${task.reward} STON`, variant: 'success' });
               return;
             }
@@ -123,7 +136,7 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
       
       if (success) {
         // Send success notification to admin for other auto-verification types
-        const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
+        const userMention = user.username ? `@${user.username}` : `User  ${user.id}`;
         await sendAdminNotification(`✅ <b>Auto-Verification Success</b>\n${userMention} completed <b>${task.title}</b>\nReward: +${task.reward} STON`);
       }
       
@@ -137,7 +150,7 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
       
       if (success) {
         // Send manual verification request to admin
-        const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
+        const userMention = user.username ? `@${user.username}` : `User  ${user.id}`;
         await sendAdminNotification(`🔍 <b>Manual Verification Request</b>\n${userMention} requested verification for <b>${task.title}</b>\nTarget: ${task.target || 'N/A'}\nReward: ${task.reward} STON`);
       }
       
@@ -149,8 +162,8 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
     }
 
     if (success) {
-      const updatedUser = await getCurrentUser(user.id);
-      if (updatedUser) refreshUserData(updatedUser);
+      const updatedUser  = await getCurrentUser (user.id);
+      if (updatedUser ) refreshUser Data(updatedUser );
     }
   };
 
@@ -236,4 +249,3 @@ const TasksSection = ({ tasks = [], user, refreshUserData, isLoading }) => {
 };
 
 export default TasksSection;
-        
