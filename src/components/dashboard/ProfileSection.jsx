@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { connectWallet, disconnectWallet, getCurrentUser } from '@/data';
+import { connectWallet, disconnectWallet, getCurrentUser  } from '@/data';
 
-const ProfileSection = ({ user, refreshUserData }) => {
+const ProfileSection = ({ user, refreshUser Data }) => {
   const [walletInput, setWalletInput] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const [copying, setCopying] = useState(false);
@@ -19,8 +19,8 @@ const ProfileSection = ({ user, refreshUserData }) => {
       if (walletInput.length === 48 && (walletInput.startsWith('EQ') || walletInput.startsWith('UQ'))) {
         const success = await connectWallet(user.id, walletInput);
         if (success) {
-          const updatedUser = await getCurrentUser(user.id);
-          if (updatedUser) refreshUserData(updatedUser);
+          const updatedUser  = await getCurrentUser (user.id);
+          if (updatedUser ) refreshUser Data(updatedUser );
           setWalletInput('');
           setShowDialog(false);
           toast({
@@ -59,8 +59,8 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (!user?.id) return;
     const success = await disconnectWallet(user.id);
     if (success) {
-      const updatedUser = await getCurrentUser(user.id);
-      if (updatedUser) refreshUserData(updatedUser);
+      const updatedUser  = await getCurrentUser (user.id);
+      if (updatedUser ) refreshUser Data(updatedUser );
       toast({
         title: 'Wallet Disconnected',
         variant: 'default',
@@ -97,11 +97,30 @@ const ProfileSection = ({ user, refreshUserData }) => {
   };
 
   const tasksDone = user.tasks ? Object.values(user.tasks).filter(Boolean).length : 0;
-  const displayName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username || `User ${user.id}`;
+  const displayName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username || `User  ${user.id}`;
   const fallbackAvatar = displayName.substring(0, 2).toUpperCase();
+
+  // Get the admin's Telegram username from environment variables
+  const adminTelegramUsername = process.env.NEXT_PUBLIC_ADMIN_TELEGRAM_USERNAME;
 
   return (
     <div className="w-full h-[100dvh] bg-[#0f0f0f] text-white flex flex-col items-center justify-center px-4 overflow-y-auto">
+      {/* Warning for banned users */}
+      {user.isBanned && (
+        <div className="bg-red-600 text-white p-4 rounded-lg w-full mb-4 text-center">
+          <p className="font-semibold">Warning: Your account is banned.</p>
+          <p>Please contact the admin for assistance.</p>
+          <a
+            href={`https://t.me/${adminTelegramUsername}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-300 underline"
+          >
+            @{adminTelegramUsername}
+          </a>
+        </div>
+      )}
+
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <Avatar className="h-24 w-24 border-4 border-sky-500">
           <AvatarImage src={user.profilePicUrl || `https://avatar.vercel.sh/${user.username || user.id}.png`} alt={user.username || user.id} />
@@ -224,4 +243,3 @@ const ProfileSection = ({ user, refreshUserData }) => {
 };
 
 export default ProfileSection;
-      
