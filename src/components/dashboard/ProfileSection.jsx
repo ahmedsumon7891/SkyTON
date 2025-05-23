@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink } from 'lucide-react';
+import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { connectWallet, disconnectWallet, getCurrentUser } from '@/data';
 
@@ -158,7 +158,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
                 title={user.wallet}
                 style={{ userSelect: 'text' }}
               >
-                {user.wallet.substring(0, 6)}...{user.wallet.substring(user.wallet.length - 4)}
+                {user.wallet.substring(0, 10)}...{user.wallet.substring(user.wallet.length - 4)}
               </span>
               <button
                 type="button"
@@ -204,7 +204,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
               className="absolute top-3 right-3 text-gray-400 hover:text-white"
               onClick={() => setShowDialog(false)}
             >
-              <Unlink className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
             <h2 className="text-lg font-semibold mb-4">Enter your TON Wallet</h2>
             <Input
