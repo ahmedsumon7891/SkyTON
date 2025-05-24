@@ -15,7 +15,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { initializeAppData } from '@/data';
 import { Loader2 } from 'lucide-react';
 import LoadingProgress from '@/components/LoadingProgress';
-import { getUserById } from '@/data/firestore/userActions'; // Import the firestore function
+import { getUserById } from '@/data/firestore/userActions'; // Updated import path
 
 export const UserContext = React.createContext(null);
 
@@ -308,5 +308,5 @@ export default function WrappedApp() {
       <App />
     </Router>
   );
-}
-                             
+        }
+        
