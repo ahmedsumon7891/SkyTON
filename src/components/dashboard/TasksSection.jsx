@@ -45,7 +45,7 @@ const TasksSection = ({ tasks = [], user = {}, refreshUserData, isLoading }) => 
     if (result.success) {
       const updatedUser = await getCurrentUser(user.id);
       if (updatedUser) refreshUserData(updatedUser);
-      toast({ title: 'Daily Check-in Successful!', description: `+${result.reward} STON`, variant: 'success' });
+      toast({ title: 'Daily Check-in Successful!', description: `+${result.reward} STON`, variant: 'success', className: "bg-[#1a1a1a] text-white" });
     } else {
       toast({ title: 'Check-in Failed', description: result.message || 'Try again later.', variant: 'destructive', className: "bg-[#1a1a1a] text-white" });
     }
