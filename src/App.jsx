@@ -14,6 +14,7 @@ import Navigation from '@/components/layout/Navigation';
 import { Toaster } from '@/components/ui/toaster';
 import { initializeAppData } from '@/data';
 import { Loader2 } from 'lucide-react';
+import LoadingProgress from '@/components/LoadingProgress'; // Import the new component
 
 export const UserContext = React.createContext(null);
 
@@ -37,8 +38,7 @@ function AppContent({
   handleAdminLogin,
   adminPassword,
   setAdminPassword,
-  handleLogout,
-  currentUser  
+  handleLogout
 }) {
   const location = useLocation();
 
@@ -109,59 +109,44 @@ function App() {
   const [error, setError] = useState(null);
   const [adminVerified, setAdminVerified] = useState(() => localStorage.getItem("adminVerified") === "true");
   const [adminPassword, setAdminPassword] = useState('');
-  const [loadingStatus, setLoadingStatus] = useState({
-    firstName: null,
-    lastName: null,
-    profilePicUrl: null,
-    balance: null,
-  });
-  const [isFirstVisit, setIsFirstVisit] = useState(true); // Track if it's the first visit
+  const [loadingDetails, setLoadingDetails] = useState([
+    { label: "User 's Name", loaded: false },
+    { label: "Username", loaded: false },
+    { label: "Profile Pic", loaded: false },
+    { label: "Bonus 100 STON", loaded: false },
+  ]);
 
   useEffect(() => {
     const loadUser  = async () => {
       try {
         setIsLoading(true);
-        setLoadingStatus({ firstName: null, lastName: null, profilePicUrl: null, balance: null });
+        setError(null);
 
         const cachedUser  = sessionStorage.getItem("cachedUser ");
         if (cachedUser ) {
           setCurrentUser (JSON.parse(cachedUser ));
-          setLoadingStatus({
-            firstName: true,
-            lastName: true,
-            profilePicUrl: true,
-            balance: true,
-          });
-          setIsFirstVisit(false); // Set to false after loading user data
+          // Mark all details as loaded for cached user
+          setLoadingDetails(prevDetails => prevDetails.map(detail => ({
+            ...detail,
+            loaded: true
+          })));
+        }
+
+        const userData = await initializeAppData();
+        if (userData) {
+          sessionStorage.setItem("cachedUser ", JSON.stringify(userData));
+          setCurrentUser (userData);
+          // Update loading details based on user data
+          setLoadingDetails(prevDetails => prevDetails.map(detail => ({
+            ...detail,
+            loaded: true // Mark all as loaded for demonstration
+          })));
         } else {
-          const userData = await initializeAppData();
-          if (userData) {
-            sessionStorage.setItem("cachedUser ", JSON.stringify(userData));
-            setCurrentUser (userData);
-            setLoadingStatus({
-              firstName: !!userData.firstName,
-              lastName: !!userData.lastName,
-              profilePicUrl: !!userData.profilePicUrl,
-              balance: userData.balance !== null,
-            });
-            setIsFirstVisit(false); // Set to false after loading user data
-          } else {
-            setLoadingStatus({
-              firstName: false,
-              lastName: false,
-              profilePicUrl: false,
-              balance: false,
-            });
-          }
+          setError("User  not found. Please open from the Telegram bot.");
         }
       } catch (err) {
         console.error("App init error:", err);
-        setLoadingStatus({
-          firstName: false,
-          lastName: false,
-          profilePicUrl: false,
-          balance: false,
-        });
+        setError("Something went wrong. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -199,28 +184,13 @@ function App() {
     sessionStorage.removeItem("tgWebAppDataRaw");
   };
 
-  const renderProgressBar = (label, status) => {
-    return (
-      <div className="flex items-center mb-2">
-        <span className="flex-1">{label}</span>
-        <span className={`ml-2 ${status ? 'text-green-500' : 'text-red-500'}`}>
-          {status === true ? '✓' : status === false ? '✗' : '...'}
-        </span>
-      </div>
-    );
-  };
+  const isGameRoute = location.pathname === "/game";
+  const isAdmin = currentUser ?.isAdmin === true;
 
   if (isLoading) {
-    if (isFirstVisit) {
-      return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-4">
-          <h2 className="text-lg font-semibold mb-4">Loading User Data...</h2>
-          {renderProgressBar("First Name", loadingStatus.firstName)}
-          {renderProgressBar("Last Name", loadingStatus.lastName)}
-          {renderProgressBar("Profile Picture", loadingStatus.profilePicUrl)}
-          {renderProgressBar("Balance", loadingStatus.balance)}
-        </div>
-      );
+    const isFirstTimeUser  = !sessionStorage.getItem("cachedUser ");
+    if (isFirstTimeUser ) {
+      return <LoadingProgress loadingDetails={loadingDetails} />;
     } else {
       return (
         <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-white">
@@ -239,8 +209,6 @@ function App() {
     );
   }
 
-  const isAdmin = currentUser ?.isAdmin === true;
-
   return (
     <User Context.Provider value={{ user: currentUser , set:User  setCurrentUser  }}>
       <div className="min-h-screen flex flex-col bg-[#0f0f0f] text-white">
@@ -253,10 +221,9 @@ function App() {
             adminPassword={adminPassword}
             setAdminPassword={setAdminPassword}
             handleLogout={handleLogout}
-            currentUser ={currentUser }
           />
         </main>
-        <Navigation isAdmin={isAdmin} />
+        {!isGameRoute && <Navigation isAdmin={isAdmin} />}
         <Toaster />
       </div>
     </User Context.Provider>
@@ -269,4 +236,4 @@ export default function WrappedApp() {
       <App />
     </Router>
   );
-}
+    }
