@@ -47,7 +47,7 @@ const TasksSection = ({ tasks = [], user = {}, refreshUserData, isLoading }) => 
       if (updatedUser) refreshUserData(updatedUser);
       toast({ title: 'Daily Check-in Successful!', description: `+${result.reward} STON`, variant: 'success' });
     } else {
-      toast({ title: 'Check-in Failed', description: result.message || 'Try again later.', variant: 'default' });
+      toast({ title: 'Check-in Failed', description: result.message || 'Try again later.', variant: 'default', className: "bg-[#1a1a1a] text-white" });
     }
     setVerifying(v => ({ ...v, checkin: false }));
   };
