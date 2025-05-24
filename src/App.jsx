@@ -104,27 +104,27 @@ function AppContent({
 
 function App() {
   const location = useLocation();
-  const [currentUser , setCurrentUser ] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [adminVerified, setAdminVerified] = useState(() => localStorage.getItem("adminVerified") === "true");
   const [adminPassword, setAdminPassword] = useState('');
   const [loadingDetails, setLoadingDetails] = useState([
-    { label: "User 's Name", loaded: false },
+    { label: "User's Name", loaded: false },
     { label: "Username", loaded: false },
     { label: "Profile Pic", loaded: false },
     { label: "Bonus 100 STON", loaded: false },
   ]);
 
   useEffect(() => {
-    const loadUser  = async () => {
+    const loadUser = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        const cachedUser  = sessionStorage.getItem("cachedUser ");
-        if (cachedUser ) {
-          setCurrentUser (JSON.parse(cachedUser ));
+        const cachedUser = sessionStorage.getItem("cachedUser");
+        if (cachedUser) {
+          setCurrentUser(JSON.parse(cachedUser));
           // Mark all details as loaded for cached user
           setLoadingDetails(prevDetails => prevDetails.map(detail => ({
             ...detail,
@@ -134,15 +134,15 @@ function App() {
 
         const userData = await initializeAppData();
         if (userData) {
-          sessionStorage.setItem("cachedUser ", JSON.stringify(userData));
-          setCurrentUser (userData);
+          sessionStorage.setItem("cachedUser", JSON.stringify(userData));
+          setCurrentUser(userData);
           // Update loading details based on user data
           setLoadingDetails(prevDetails => prevDetails.map(detail => ({
             ...detail,
             loaded: true // Mark all as loaded for demonstration
           })));
         } else {
-          setError("User  not found. Please open from the Telegram bot.");
+          setError("User not found. Please open from the Telegram bot.");
         }
       } catch (err) {
         console.error("App init error:", err);
@@ -152,7 +152,7 @@ function App() {
       }
     };
 
-    loadUser ();
+    loadUser();
   }, []);
 
   const handleAdminLogin = async () => {
@@ -180,16 +180,16 @@ function App() {
     setAdminVerified(false);
     localStorage.removeItem("adminVerified");
     sessionStorage.removeItem("adminSession");
-    sessionStorage.removeItem("cachedUser ");
+    sessionStorage.removeItem("cachedUser");
     sessionStorage.removeItem("tgWebAppDataRaw");
   };
 
   const isGameRoute = location.pathname === "/game";
-  const isAdmin = currentUser ?.isAdmin === true;
+  const isAdmin = currentUser?.isAdmin === true;
 
   if (isLoading) {
-    const isFirstTimeUser  = !sessionStorage.getItem("cachedUser ");
-    if (isFirstTimeUser ) {
+    const isFirstTimeUser = !sessionStorage.getItem("cachedUser");
+    if (isFirstTimeUser) {
       return <LoadingProgress loadingDetails={loadingDetails} />;
     } else {
       return (
@@ -201,16 +201,16 @@ function App() {
     }
   }
 
-  if (error || !currentUser ) {
+  if (error || !currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-red-500 p-4">
-        <p className="text-center">{error || "User  data could not be loaded."}</p>
+        <p className="text-center">{error || "User data could not be loaded."}</p>
       </div>
     );
   }
 
   return (
-    <UserContext.Provider value={{ user: currentUser , set:User  setCurrentUser  }}>
+    <UserContext.Provider value={{ user: currentUser, setUser: setCurrentUser }}>
       <div className="min-h-screen flex flex-col bg-[#0f0f0f] text-white">
         <main className="flex-grow overflow-x-hidden">
           <AppContent
@@ -236,4 +236,4 @@ export default function WrappedApp() {
       <App />
     </Router>
   );
-    }
+}
