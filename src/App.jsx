@@ -15,7 +15,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { initializeAppData } from '@/data';
 import { Loader2 } from 'lucide-react';
 import LoadingProgress from '@/components/LoadingProgress';
-import { getUserById } from '@/lib/firestore'; // Import the firestore function
+import { getUserById } from '@/data/firestore/userActions'; // Import the firestore function
 
 export const UserContext = React.createContext(null);
 
