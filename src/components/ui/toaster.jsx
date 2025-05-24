@@ -24,7 +24,7 @@ export function Toaster() {
 				) : null;
 
 				// Determine the text color based on the variant
-				const titleColor = variant === 'success' ? 'text-green-500' : variant === 'destructive' ? 'text-red-500' : 'text-black';
+				const titleColor = variant === 'success' ? 'text-green-500' : variant === 'destructive' ? 'text-red-500' : 'text-white';
 
 				return (
 					<Toast key={id} {...props}>
