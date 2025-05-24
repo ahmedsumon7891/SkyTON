@@ -21,7 +21,7 @@ const ReferralSection = ({ user }) => {
 
   const copyReferralLink = () => {
     if (!referralLink) {
-      toast({ title: "Referral link not available", variant: "distractive", className: "bg-[#1a1a1a] text-white" });
+      toast({ title: "Referral link not available", variant: "destructive", className: "bg-[#1a1a1a] text-white" });
       return;
     }
     navigator.clipboard.writeText(referralLink)
