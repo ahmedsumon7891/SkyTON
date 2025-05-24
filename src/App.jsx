@@ -210,7 +210,7 @@ function App() {
   }
 
   return (
-    <User Context.Provider value={{ user: currentUser , set:User  setCurrentUser  }}>
+    <UserContext.Provider value={{ user: currentUser , set:User  setCurrentUser  }}>
       <div className="min-h-screen flex flex-col bg-[#0f0f0f] text-white">
         <main className="flex-grow overflow-x-hidden">
           <AppContent
@@ -226,7 +226,7 @@ function App() {
         {!isGameRoute && <Navigation isAdmin={isAdmin} />}
         <Toaster />
       </div>
-    </User Context.Provider>
+    </UserContext.Provider>
   );
 }
 
