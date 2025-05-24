@@ -23,12 +23,15 @@ export function Toaster() {
 					<AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
 				) : null;
 
+				// Determine the text color based on the variant
+				const titleColor = variant === 'success' ? 'text-green-500' : variant === 'destructive' ? 'text-red-500' : 'text-black';
+
 				return (
 					<Toast key={id} {...props}>
 						<div className="flex items-center">
 							{icon}
 							<div className="grid gap-1">
-								{title && <ToastTitle>{title}</ToastTitle>}
+								{title && <ToastTitle className={titleColor}>{title}</ToastTitle>}
 								{description && (
 									<ToastDescription>{description}</ToastDescription>
 								)}
