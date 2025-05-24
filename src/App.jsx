@@ -37,7 +37,8 @@ function AppContent({
   handleAdminLogin,
   adminPassword,
   setAdminPassword,
-  handleLogout
+  handleLogout,
+  currentUser  
 }) {
   const location = useLocation();
 
@@ -103,39 +104,70 @@ function AppContent({
 
 function App() {
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser , setCurrentUser ] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [adminVerified, setAdminVerified] = useState(() => localStorage.getItem("adminVerified") === "true");
   const [adminPassword, setAdminPassword] = useState('');
+  const [loadingStatus, setLoadingStatus] = useState({
+    firstName: null,
+    lastName: null,
+    profilePicUrl: null,
+    balance: null,
+  });
+  const [isFirstVisit, setIsFirstVisit] = useState(true); // Track if it's the first visit
 
   useEffect(() => {
-    const loadUser = async () => {
+    const loadUser  = async () => {
       try {
         setIsLoading(true);
-        setError(null);
+        setLoadingStatus({ firstName: null, lastName: null, profilePicUrl: null, balance: null });
 
-        const cachedUser = sessionStorage.getItem("cachedUser");
-        if (cachedUser) {
-          setCurrentUser(JSON.parse(cachedUser));
-        }
-
-        const userData = await initializeAppData();
-        if (userData) {
-          sessionStorage.setItem("cachedUser", JSON.stringify(userData));
-          setCurrentUser(userData);
+        const cachedUser  = sessionStorage.getItem("cachedUser ");
+        if (cachedUser ) {
+          setCurrentUser (JSON.parse(cachedUser ));
+          setLoadingStatus({
+            firstName: true,
+            lastName: true,
+            profilePicUrl: true,
+            balance: true,
+          });
+          setIsFirstVisit(false); // Set to false after loading user data
         } else {
-          setError("User not found. Please open from the Telegram bot.");
+          const userData = await initializeAppData();
+          if (userData) {
+            sessionStorage.setItem("cachedUser ", JSON.stringify(userData));
+            setCurrentUser (userData);
+            setLoadingStatus({
+              firstName: !!userData.firstName,
+              lastName: !!userData.lastName,
+              profilePicUrl: !!userData.profilePicUrl,
+              balance: userData.balance !== null,
+            });
+            setIsFirstVisit(false); // Set to false after loading user data
+          } else {
+            setLoadingStatus({
+              firstName: false,
+              lastName: false,
+              profilePicUrl: false,
+              balance: false,
+            });
+          }
         }
       } catch (err) {
         console.error("App init error:", err);
-        setError("Something went wrong. Please try again.");
+        setLoadingStatus({
+          firstName: false,
+          lastName: false,
+          profilePicUrl: false,
+          balance: false,
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadUser();
+    loadUser ();
   }, []);
 
   const handleAdminLogin = async () => {
@@ -163,32 +195,54 @@ function App() {
     setAdminVerified(false);
     localStorage.removeItem("adminVerified");
     sessionStorage.removeItem("adminSession");
-    sessionStorage.removeItem("cachedUser");
+    sessionStorage.removeItem("cachedUser ");
     sessionStorage.removeItem("tgWebAppDataRaw");
   };
 
-  const isGameRoute = location.pathname === "/game";
-  const isAdmin = currentUser?.isAdmin === true;
+  const renderProgressBar = (label, status) => {
+    return (
+      <div className="flex items-center mb-2">
+        <span className="flex-1">{label}</span>
+        <span className={`ml-2 ${status ? 'text-green-500' : 'text-red-500'}`}>
+          {status === true ? '✓' : status === false ? '✗' : '...'}
+        </span>
+      </div>
+    );
+  };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-white">
-        <Loader2 className="h-12 w-12 animate-spin text-sky-400" />
-        <p className="text-sm text-muted-foreground ml-3">Loading your dashboard...</p>
-      </div>
-    );
+    if (isFirstVisit) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-4">
+          <h2 className="text-lg font-semibold mb-4">Loading User Data...</h2>
+          {renderProgressBar("First Name", loadingStatus.firstName)}
+          {renderProgressBar("Last Name", loadingStatus.lastName)}
+          {renderProgressBar("Profile Picture", loadingStatus.profilePicUrl)}
+          {renderProgressBar("Balance", loadingStatus.balance)}
+        </div>
+      );
+    } else {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-white">
+          <Loader2 className="h-12 w-12 animate-spin text-sky-400" />
+          <p className="text-sm text-muted-foreground ml-3">Loading your dashboard...</p>
+        </div>
+      );
+    }
   }
 
-  if (error || !currentUser) {
+  if (error || !currentUser ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] text-red-500 p-4">
-        <p className="text-center">{error || "User data could not be loaded."}</p>
+        <p className="text-center">{error || "User  data could not be loaded."}</p>
       </div>
     );
   }
 
+  const isAdmin = currentUser ?.isAdmin === true;
+
   return (
-    <UserContext.Provider value={{ user: currentUser, setUser: setCurrentUser }}>
+    <User Context.Provider value={{ user: currentUser , set:User  setCurrentUser  }}>
       <div className="min-h-screen flex flex-col bg-[#0f0f0f] text-white">
         <main className="flex-grow overflow-x-hidden">
           <AppContent
@@ -199,12 +253,13 @@ function App() {
             adminPassword={adminPassword}
             setAdminPassword={setAdminPassword}
             handleLogout={handleLogout}
+            currentUser ={currentUser }
           />
         </main>
-        {!isGameRoute && <Navigation isAdmin={isAdmin} />}
+        <Navigation isAdmin={isAdmin} />
         <Toaster />
       </div>
-    </UserContext.Provider>
+    </User Context.Provider>
   );
 }
 
