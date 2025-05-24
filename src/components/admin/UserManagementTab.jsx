@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -103,15 +103,17 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
                       <p className="flex items-center gap-1.5">
                         <Wallet className="w-3.5 h-3.5 text-[#FFD429]" />
                         <span className="font-medium text-[#BCCCDC]">Wallet:</span> {user.wallet ? `${user.wallet.slice(0, 6)}...${user.wallet.slice(-4)}` : 'N/A'}
-                        <button
-                          type="button"
-                          className="flex items-center p-1.5 rounded-full transition hover:bg-sky-400/20 active:scale-95"
-                          aria-label="Copy Wallet Address"
-                          title={copying ? "Copied!" : "Copy Wallet Address"}
-                          onClick={() => handleCopyWallet(user.wallet)} // Pass the wallet to the function
-                        >
-                          <Copy className={`h-5 w-5 ${copying ? 'text-green-400' : 'text-gray-400'} transition`} />
-                        </button>
+                        {user.wallet && user.wallet !== 'N/A' && (
+                          <button
+                            type="button"
+                            className="flex items-center p-1.5 rounded-full transition hover:bg-sky-400/20 active:scale-95"
+                            aria-label="Copy Wallet Address"
+                            title={copying ? "Copied!" : "Copy Wallet Address"}
+                            onClick={() => handleCopyWallet(user.wallet)} // Pass the wallet to the function
+                          >
+                            <Copy className={`h-4 w-4 ${copying ? 'text-green-400' : 'text-gray-400'} transition`} />
+                          </button>
+                        )}
                       </p>
                       <p className="flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-[#FFD429]" />
@@ -170,4 +172,3 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
 };
 
 export default UserManagementTab;
-      
