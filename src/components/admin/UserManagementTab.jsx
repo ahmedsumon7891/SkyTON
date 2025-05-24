@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Ban, CheckCircle, User, Wallet, Calendar } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { Ban, CheckCircle, User, Wallet, Calendar, Copy } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 
-
 const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanToggle }) => {
+  const [copying, setCopying] = useState(false);
+  const { toast } = useToast();
+
   const filteredUsers = users.filter((user) => {
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -20,6 +23,26 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
       user.wallet?.toLowerCase().includes(searchLower)
     );
   });
+
+  const handleCopyWallet = async (wallet) => {
+    if (!wallet) return;
+    try {
+      await navigator.clipboard.writeText(wallet);
+      setCopying(true);
+      toast({
+        title: 'Wallet copied!',
+        description: wallet,
+        className: 'bg-[#1a1a1a] text-white break-all whitespace-pre-line',
+      });
+      setTimeout(() => setCopying(false), 1200);
+    } catch {
+      toast({
+        title: "Copy failed!",
+        variant: "destructive",
+        className: 'bg-[#1a1a1a] text-white',
+      });
+    }
+  };
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
@@ -74,12 +97,21 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
 
                     <div className="text-xs text-[#FFD429] space-y-1">
                       <p className="flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-[#FFD429]" />
-                        <span className="font-medium text-[#BCCCDC]">User ID:</span> {user.telegramId}
+                        <User  className="w-3.5 h-3.5 text-[#FFD429]" />
+                        <span className="font-medium text-[#BCCCDC]">User  ID:</span> {user.telegramId}
                       </p>
                       <p className="flex items-center gap-1.5">
                         <Wallet className="w-3.5 h-3.5 text-[#FFD429]" />
                         <span className="font-medium text-[#BCCCDC]">Wallet:</span> {user.wallet ? `${user.wallet.slice(0, 6)}...${user.wallet.slice(-4)}` : 'N/A'}
+                        <button
+                          type="button"
+                          className="flex items-center p-1.5 rounded-full transition hover:bg-sky-400/20 active:scale-95"
+                          aria-label="Copy Wallet Address"
+                          title={copying ? "Copied!" : "Copy Wallet Address"}
+                          onClick={() => handleCopyWallet(user.wallet)} // Pass the wallet to the function
+                        >
+                          <Copy className={`h-5 w-5 ${copying ? 'text-green-400' : 'text-gray-400'} transition`} />
+                        </button>
                       </p>
                       <p className="flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-[#FFD429]" />
@@ -138,4 +170,4 @@ const UserManagementTab = ({ users = [], searchTerm, setSearchTerm, handleBanTog
 };
 
 export default UserManagementTab;
-                              
+      
