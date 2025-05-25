@@ -28,7 +28,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
         const success = await connectWallet(user.id, walletInput);
         if (success) {
           const updatedUser  = await getCurrentUser (user.id);
-          if (updatedUser ) refreshUser Data(updatedUser );
+          if (updatedUser ) refreshUserData(updatedUser );
           setWalletInput('');
           setShowDialog(false);
           toast({
