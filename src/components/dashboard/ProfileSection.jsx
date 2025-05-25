@@ -7,7 +7,7 @@ import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink,
 import { useToast } from '@/components/ui/use-toast';
 import { connectWallet, disconnectWallet, getCurrentUser  } from '@/data';
 
-const ProfileSection = ({ user, refreshUser Data }) => {
+const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
