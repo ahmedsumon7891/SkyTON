@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X, AlertTriangle, Send, Share2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { connectWallet, disconnectWallet, getCurrentUser } from '@/data';
-import QRCode from 'react-qr-code';
+import QRCode from '@/components/ui/QRCode';
 
 const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState('');
