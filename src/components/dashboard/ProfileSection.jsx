@@ -325,7 +325,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
               </a>
             </div>
             <div className="flex justify-center">
-              <QRCode value={referralLink} size={80} bgColor="#0f2027" fgColor="#38bdf8" style={{ borderRadius: 8, background: "#0f2027" }} />
+              <QRCode value={referralLink} size={80} bgColor="0f2027" fgColor="38bdf8" />
             </div>
           </div>
 
