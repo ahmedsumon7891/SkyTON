@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { generateReferralLink } from '@/data';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import QRCode from '@/components/ui/QRCode'; // Import the QRCode component
 
 const defaultAvatar = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB_4gKwn8q2WBPTwnV14Jmh3B5g56SCiGEBA&usqp=CAU";
 
@@ -33,6 +34,27 @@ const ReferralSection = ({ user }) => {
       });
   };
 
+  const shareOnSocialMedia = (platform) => {
+    const encodedLink = encodeURIComponent(referralLink);
+    let shareUrl = '';
+
+    switch (platform) {
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodedLink}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${encodedLink}`;
+        break;
+      case 'messenger':
+        shareUrl = `https://www.messenger.com/share?link=${encodedLink}`;
+        break;
+      default:
+        break;
+    }
+
+    window.open(shareUrl, '_blank');
+  };
+
   useEffect(() => {
     const fetchReferredUsers = async () => {
       setLoadingReferrals(true);
@@ -45,7 +67,7 @@ const ReferralSection = ({ user }) => {
             const data = snap.data();
             return {
               id: uid,
-              name: data.username || data.firstName || `User ${uid}`,
+              name: data.username || data.firstName || `User  ${uid}`,
               photo: data.profilePicUrl || defaultAvatar
             };
           }
@@ -64,7 +86,7 @@ const ReferralSection = ({ user }) => {
           const data = snap.data();
           setReferrerInfo({
             id: user.invitedBy,
-            name: data.username || data.firstName || `User ${user.invitedBy}`,
+            name: data.username || data.firstName || `User  ${user.invitedBy}`,
             photo: data.profilePicUrl || defaultAvatar
           });
         }
@@ -133,6 +155,16 @@ const ReferralSection = ({ user }) => {
             <span className="text-xs text-muted-foreground italic">Referred by: {referrerInfo.name}</span>
           </div>
         )}
+
+        <div className="flex flex-col items-center space-y-4 pt-6">
+          <h3 className="text-lg font-bold">Share Your Link</h3>
+          <div className="flex space-x-2">
+            <Button onClick={() => shareOnSocialMedia('whatsapp')}>Share on WhatsApp</Button>
+            <Button onClick={() => shareOnSocialMedia('telegram')}>Share on Telegram</Button>
+            <Button onClick={() => shareOnSocialMedia('messenger')}>Share on Messenger</Button>
+          </div>
+          <QRCode value={referralLink} />
+        </div>
       </div>
     </motion.div>
   );
