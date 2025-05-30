@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Copy, Loader2 } from 'lucide-react';
+import { Copy, Loader2, Share2 } from 'lucide-react'; // Import Share2 icon
 import { useToast } from '@/components/ui/use-toast';
 import { generateReferralLink } from '@/data';
 import { db } from '@/lib/firebase';
@@ -17,6 +17,7 @@ const ReferralSection = ({ user }) => {
   const [referredUsers, setReferredUsers] = useState([]);
   const [referrerInfo, setReferrerInfo] = useState(null);
   const [loadingReferrals, setLoadingReferrals] = useState(true);
+  const [showQRCodePopup, setShowQRCodePopup] = useState(false); // State for QR code popup
 
   const referralLink = user.referralLink || generateReferralLink(user.id);
 
@@ -34,24 +35,9 @@ const ReferralSection = ({ user }) => {
       });
   };
 
-  const shareOnSocialMedia = (platform) => {
+  const shareOnTelegram = () => {
     const encodedLink = encodeURIComponent(referralLink);
-    let shareUrl = '';
-
-    switch (platform) {
-      case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodedLink}`;
-        break;
-      case 'telegram':
-        shareUrl = `https://t.me/share/url?url=${encodedLink}`;
-        break;
-      case 'messenger':
-        shareUrl = `https://www.messenger.com/share?link=${encodedLink}`;
-        break;
-      default:
-        break;
-    }
-
+    const shareUrl = `https://t.me/share/url?url=${encodedLink}`;
     window.open(shareUrl, '_blank');
   };
 
@@ -117,6 +103,9 @@ const ReferralSection = ({ user }) => {
             <Button size="icon" variant="ghost" onClick={copyReferralLink}>
               <Copy className="h-4 w-4 text-white" />
             </Button>
+            <Button size="icon" variant="ghost" onClick={() => setShowQRCodePopup(true)}>
+              <Share2 className="h-4 w-4 text-white" />
+            </Button>
           </div>
         </div>
 
@@ -157,14 +146,26 @@ const ReferralSection = ({ user }) => {
         )}
 
         <div className="flex flex-col items-center space-y-4 pt-6">
-          <h3 className="text-lg font-bold">Share Your Link</h3>
-          <div className="flex space-x-2">
-            <Button onClick={() => shareOnSocialMedia('whatsapp')}>Share on WhatsApp</Button>
-            <Button onClick={() => shareOnSocialMedia('telegram')}>Share on Telegram</Button>
-            <Button onClick={() => shareOnSocialMedia('messenger')}>Share on Messenger</Button>
-          </div>
-          <QRCode value={referralLink} />
+          <Button onClick={shareOnTelegram} className="border rounded-lg border-white/30">
+            <span className="flex items-center">
+              <Share2 className="mr-2" /> Share on Telegram
+            </span>
+          </Button>
         </div>
+
+        {/* QR Code Popup */}
+        {showQRCodePopup && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+              <h3 className="text-lg font-bold mb-2">Your QR Code</h3>
+              <QRCode value={referralLink} />
+              <p className="mt-4 text-sm text-gray-700">{referralLink}</p>
+              <Button onClick={() => setShowQRCodePopup(false)} className="mt-4">
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );
