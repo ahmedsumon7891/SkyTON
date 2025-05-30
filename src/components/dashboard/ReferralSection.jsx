@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Copy, Loader2, Telegram } from 'lucide-react'; // Import Telegram icon
+import { Copy, Loader2, Share2 } from 'lucide-react'; // Use Share2 icon instead of Telegram
 import { useToast } from '@/components/ui/use-toast';
 import { generateReferralLink } from '@/data';
 import { db } from '@/lib/firebase';
@@ -53,7 +53,7 @@ const ReferralSection = ({ user }) => {
             const data = snap.data();
             return {
               id: uid,
-              name: data.username || data.firstName || `User   ${uid}`,
+              name: data.username || data.firstName || `User  ${uid}`,
               photo: data.profilePicUrl || defaultAvatar
             };
           }
@@ -72,7 +72,7 @@ const ReferralSection = ({ user }) => {
           const data = snap.data();
           setReferrerInfo({
             id: user.invitedBy,
-            name: data.username || data.firstName || `User   ${user.invitedBy}`,
+            name: data.username || data.firstName || `User  ${user.invitedBy}`,
             photo: data.profilePicUrl || defaultAvatar
           });
         }
@@ -110,7 +110,7 @@ const ReferralSection = ({ user }) => {
         </div>
 
         <Button onClick={shareOnTelegram} className="border rounded-lg border-white/30 flex items-center justify-center">
-          <Telegram className="mr-2" /> Share on Telegram
+          <Share2 className="mr-2" /> Share on Telegram
         </Button>
 
         <div className="bg-sky-900 p-4 rounded-xl text-center shadow">
