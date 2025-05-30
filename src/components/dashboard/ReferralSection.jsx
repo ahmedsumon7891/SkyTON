@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Copy, Loader2, Share2 } from 'lucide-react'; // Import Share2 icon
+import { Copy, Loader2, Telegram } from 'lucide-react'; // Import Telegram icon
 import { useToast } from '@/components/ui/use-toast';
 import { generateReferralLink } from '@/data';
 import { db } from '@/lib/firebase';
@@ -53,7 +53,7 @@ const ReferralSection = ({ user }) => {
             const data = snap.data();
             return {
               id: uid,
-              name: data.username || data.firstName || `User  ${uid}`,
+              name: data.username || data.firstName || `User   ${uid}`,
               photo: data.profilePicUrl || defaultAvatar
             };
           }
@@ -72,7 +72,7 @@ const ReferralSection = ({ user }) => {
           const data = snap.data();
           setReferrerInfo({
             id: user.invitedBy,
-            name: data.username || data.firstName || `User  ${user.invitedBy}`,
+            name: data.username || data.firstName || `User   ${user.invitedBy}`,
             photo: data.profilePicUrl || defaultAvatar
           });
         }
@@ -104,10 +104,14 @@ const ReferralSection = ({ user }) => {
               <Copy className="h-4 w-4 text-white" />
             </Button>
             <Button size="icon" variant="ghost" onClick={() => setShowQRCodePopup(true)}>
-              <Share2 className="h-4 w-4 text-white" />
+              <Copy className="h-4 w-4 text-white" />
             </Button>
           </div>
         </div>
+
+        <Button onClick={shareOnTelegram} className="border rounded-lg border-white/30 flex items-center justify-center">
+          <Telegram className="mr-2" /> Share on Telegram
+        </Button>
 
         <div className="bg-sky-900 p-4 rounded-xl text-center shadow">
           <p className="text-sm text-muted-foreground">Total Referrals</p>
@@ -145,21 +149,18 @@ const ReferralSection = ({ user }) => {
           </div>
         )}
 
-        <div className="flex flex-col items-center space-y-4 pt-6">
-          <Button onClick={shareOnTelegram} className="border rounded-lg border-white/30">
-            <span className="flex items-center">
-              <Share2 className="mr-2" /> Share on Telegram
-            </span>
-          </Button>
-        </div>
-
         {/* QR Code Popup */}
         {showQRCodePopup && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-              <h3 className="text-lg font-bold mb-2">Your QR Code</h3>
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+            <div className="bg-[#1a1a1a] p-6 rounded-lg shadow-lg text-center">
+              <h3 className="text-lg font-bold mb-2 text-white">Your QR Code</h3>
               <QRCode value={referralLink} />
-              <p className="mt-4 text-sm text-gray-700">{referralLink}</p>
+              <p className="mt-4 text-sm text-gray-300">{referralLink}</p>
+              <div className="flex justify-center items-center mt-4">
+                <Button size="icon" variant="ghost" onClick={copyReferralLink}>
+                  <Copy className="h-4 w-4 text-white" />
+                </Button>
+              </div>
               <Button onClick={() => setShowQRCodePopup(false)} className="mt-4">
                 Close
               </Button>
