@@ -11,7 +11,7 @@ import PendingWithdrawTab from '@/components/admin/PendingWithdrawTab';
 
 import {
   getAllUsers,
-  toggleUserBanStatus
+  toggleUser BanStatus
 } from '@/data/firestore/userActions';
 import {
   getAllTasks,
@@ -35,8 +35,8 @@ const containerVariants = {
 
 const AdminPage = () => {
   const context = useContext(UserContext);
-  const sessionUser = JSON.parse(sessionStorage.getItem('tgUserData') || '{}');
-  const user = context?.user || sessionUser;
+  const sessionUser  = JSON.parse(sessionStorage.getItem('tgUser Data') || '{}');
+  const user = context?.user || sessionUser ;
 
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -89,7 +89,7 @@ const AdminPage = () => {
   }, []);
 
   const handleBanToggle = async (telegramId, currentStatus) => {
-    const updated = await toggleUserBanStatus(telegramId, !currentStatus);
+    const updated = await toggleUser BanStatus(telegramId, !currentStatus);
     if (updated) {
       setUsers(prev => prev.map(u =>
         u.telegramId === telegramId ? { ...u, isBanned: !currentStatus } : u
@@ -248,16 +248,16 @@ const AdminPage = () => {
 
         <Tabs value={tab} onValueChange={handleTabChange} className="w-full bg-[#0f0f0f]">
           <TabsList className="grid grid-cols-4 bg-[#1a1a1a] text-white rounded-lg shadow-md">
-            <TabsTrigger value="users" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80">
+            <TabsTrigger value="users" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80 transition-all duration-200">
               <Users className="h-4 w-4" /> Users
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80">
+            <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80 transition-all duration-200">
               <ListChecks className="h-4 w-4" /> Tasks
             </TabsTrigger>
-            <TabsTrigger value="pending" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80">
+            <TabsTrigger value="pending" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80 transition-all duration-200">
               <CheckSquare className="h-4 w-4" /> Pending
             </TabsTrigger>
-            <TabsTrigger value="withdrawals" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80">
+            <TabsTrigger value="withdrawals" className="flex items-center justify-center gap-1 py-2 rounded-lg data-[state=active]:bg-primary/80 transition-all duration-200">
               <Wallet className="h-4 w-4" /> Withdrawals
             </TabsTrigger>
           </TabsList>
@@ -268,7 +268,7 @@ const AdminPage = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : (
-              <UserManagementTab
+              <User ManagementTab
                 users={users}
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
