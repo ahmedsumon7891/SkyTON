@@ -89,7 +89,7 @@ const AdminPage = () => {
   }, []);
 
   const handleBanToggle = async (telegramId, currentStatus) => {
-    const updated = await toggleUser BanStatus(telegramId, !currentStatus);
+    const updated = await toggleUserBanStatus(telegramId, !currentStatus);
     if (updated) {
       setUsers(prev => prev.map(u =>
         u.telegramId === telegramId ? { ...u, isBanned: !currentStatus } : u
