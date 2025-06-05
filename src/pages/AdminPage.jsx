@@ -268,7 +268,7 @@ const AdminPage = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : (
-              <User ManagementTab
+              <UserManagementTab
                 users={users}
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
