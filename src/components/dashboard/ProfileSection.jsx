@@ -11,7 +11,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [verifyingTransaction, setVerifyingTransaction] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const { toast } = useToast();
 
   const adminUsername = import.meta.env.VITE_ADMIN_TG_USERNAME;
@@ -99,15 +99,26 @@ const ProfileSection = ({ user, refreshUserData }) => {
   };
 
   const handleWithdraw = async () => {
-    // Logic to handle withdrawal
-    // You can implement the withdrawal API call here
-    toast({
-      title: 'Withdrawal Successful',
-      description: `You have withdrawn ${withdrawAmount} STON.`,
-      variant: 'success',
-    });
-    setWithdrawAmount('');
-    setShowDialog(false);
+    if (!user?.id || !withdrawAmount) return;
+
+    setVerifying(true);
+    const success = await requestManualVerification(user.id, withdrawAmount);
+    if (success) {
+      toast({
+        title: 'Withdrawal Requested',
+        description: `You have requested to withdraw ${withdrawAmount} STON.`,
+        variant: 'success',
+      });
+      setWithdrawAmount('');
+      setShowDialog(false);
+    } else {
+      toast({
+        title: 'Withdrawal Failed',
+        description: 'Could not process your withdrawal request. Please try again later.',
+        variant: 'destructive',
+      });
+    }
+    setVerifying(false);
   };
 
   const handleMaxClick = () => {
@@ -118,24 +129,9 @@ const ProfileSection = ({ user, refreshUserData }) => {
     return (ston / 10000000).toFixed(6); // Convert STON to TON
   };
 
-  const handleTransactionVerification = async () => {
-    setVerifyingTransaction(true);
-    const success = await requestManualVerification(user.id, withdrawAmount);
-    if (success) {
-      toast({
-        title: 'Verification Requested',
-        description: `Verification for ${withdrawAmount} STON has been requested.`,
-        variant: 'success',
-      });
-    } else {
-      toast({
-        title: 'Verification Failed',
-        description: 'Could not request verification. Try again later.',
-        variant: 'destructive',
-      });
-    }
-    setVerifyingTransaction(false);
-  };
+  const tasksDone = user.tasks ? Object.values(user.tasks).filter(Boolean).length : 0;
+  const displayName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username || `User  ${user.id}`;
+  const fallbackAvatar = displayName.substring(0, 2).toUpperCase();
 
   return (
     <div className="relative w-full h-[100dvh] bg-[#0f0f0f] text-white">
@@ -170,12 +166,44 @@ const ProfileSection = ({ user, refreshUserData }) => {
         <div className="w-full max-w-md flex flex-col items-center gap-6">
           <Avatar className="h-24 w-24 border-4 border-sky-500">
             <AvatarImage src={user.profilePicUrl || `https://avatar.vercel.sh/${user.username || user.id}.png`} alt={user.username || user.id} />
-            <AvatarFallback>{user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username || `User  ${user.id}`}</AvatarFallback>
+            <AvatarFallback>{fallbackAvatar}</AvatarFallback>
           </Avatar>
 
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-white">{user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username || `User  ${user.id}`}</h1>
+            <h1 className="text-2xl font-bold text-white">{displayName}</h1>
             <p className="text-sm text-gray-400">@{user.username || 'telegram_user'}</p>
+          </div>
+
+          {/* Responsive Stat Boxes */}
+          <div className="grid grid-cols-2 gap-4 w-full text-sm">
+            <div className="bg-sky-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-sky-400 border border-transparent">
+              <div className="flex items-center justify-center mb-1">
+                <Wallet className="h-5 w-5 text-sky-300 mr-1" />
+                <span className="text-gray-300">Balance</span>
+              </div>
+              <p className="text-lg font-bold text-green-300">{user.balance?.toLocaleString() || '0'} STON</p>
+            </div>
+            <div className="bg-yellow-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-yellow-300 border border-transparent">
+              <div className="flex items-center justify-center mb-1">
+                <Zap className="h-5 w-5 text-yellow-300 mr-1" />
+                <span className="text-gray-300">Energy</span>
+              </div>
+              <p className="text-lg font-bold text-yellow-300 flex items-center justify-center">{user.energy || 0}</p>
+            </div>
+            <div className="bg-purple-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-purple-400 border border-transparent">
+              <div className="flex items-center justify-center mb-1">
+                <Users className="h-5 w-5 text-purple-300 mr-1" />
+                <span className="text-gray-300">Referrals</span>
+              </div>
+              <p className="text-lg font-bold text-purple-300">{user.referrals || 0}</p>
+            </div>
+            <div className="bg-emerald-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-emerald-400 border border-transparent">
+              <div className="flex items-center justify-center mb-1">
+                <CheckCircle2 className="h-5 w-5 text-emerald-300 mr-1" />
+                <span className="text-gray-300">Tasks Done</span>
+              </div>
+              <p className="text-lg font-bold text-emerald-300">{tasksDone}</p>
+            </div>
           </div>
 
           {/* Wallet Box */}
@@ -184,7 +212,11 @@ const ProfileSection = ({ user, refreshUserData }) => {
             {user.wallet ? (
               <div className="flex items-center bg-white/5 px-4 py-3 rounded-xl text-sm w-full justify-between gap-2">
                 <Wallet className="h-5 w-5 text-sky-400 flex-shrink-0" />
-                <span className="truncate font-mono px-2 text-white select-text text-base text-left w-full" title={user.wallet}>
+                <span
+                  className="truncate font-mono px-2 text-white select-text text-base text-left w-full"
+                  title={user.wallet}
+                  style={{ userSelect: 'text' }}
+                >
                   {user.wallet.substring(0, 10)}...{user.wallet.substring(user.wallet.length - 4)}
                 </span>
                 <button
@@ -213,7 +245,6 @@ const ProfileSection = ({ user, refreshUserData }) => {
             )}
           </div>
 
-          {/* Withdraw Button */}
           <Button variant="ghost" className="mt-4 w-full" onClick={() => setShowDialog(true)}>
             <Gift className="mr-2 h-5 w-5" /> Claim Rewards
           </Button>
@@ -249,11 +280,8 @@ const ProfileSection = ({ user, refreshUserData }) => {
                     <p className="text-sm text-gray-400">Balance: {user.balance?.toLocaleString() || '0'} STON</p>
                   </div>
                   <p className="text-sm text-gray-400 mb-2">Convert to TON: {stonToTon(withdrawAmount)} TON</p>
-                  <Button className="w-full" onClick={handleWithdraw}>
-                    Withdraw
-                  </Button>
-                  <Button className="w-full mt-2" onClick={handleTransactionVerification} disabled={verifyingTransaction}>
-                    {verifyingTransaction ? 'Verifying...' : 'Request Manual Verification'}
+                  <Button className="w-full" onClick={handleWithdraw} disabled={verifying}>
+                    {verifying ? 'Processing...' : 'Withdraw'}
                   </Button>
                 </>
               ) : (
