@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X, AlertTriangle, Send } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { connectWallet, disconnectWallet, getCurrentUser , requestManualVerification } from '@/data';
+import { connectWallet, disconnectWallet, getCurrentUser, requestManualVerification } from '@/data';
 
 const ProfileSection = ({ user, refreshUserData }) => {
-  const [walletInput, setWalletInput] = useState('');
-  const [showDialog, setShowDialog] = useState(false);
+  const [walletInput, setWalletInput] = useState("");
+  const [showWalletDialog, setShowWalletDialog] = useState(false);
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [copying, setCopying] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawAmount, setWithdrawAmount] = useState("");
   const [verifying, setVerifying] = useState(false);
   const { toast } = useToast();
 
@@ -24,40 +25,47 @@ const ProfileSection = ({ user, refreshUserData }) => {
   const handleConnectWallet = async () => {
     if (!user?.id) return;
     if (walletInput.trim()) {
-      if (walletInput.length === 48 && (walletInput.startsWith('EQ') || walletInput.startsWith('UQ'))) {
+      if (
+        walletInput.length === 48 &&
+        (walletInput.startsWith("EQ") || walletInput.startsWith("UQ"))
+      ) {
         const success = await connectWallet(user.id, walletInput);
         if (success) {
-          const updatedUser  = await getCurrentUser (user.id);
-          if (updatedUser ) refreshUserData(updatedUser );
-          setWalletInput('');
-          setShowDialog(false);
+          const updatedUser = await getCurrentUser(user.id);
+          if (updatedUser) refreshUserData(updatedUser);
+          setWalletInput("");
+          setShowWalletDialog(false);
           toast({
-            title: 'Wallet Connected',
-            description: `Wallet ${walletInput.substring(0, 6)}...${walletInput.substring(walletInput.length - 4)} added.`,
-            variant: 'success',
+            title: "Wallet Connected",
+            description: `Wallet ${walletInput.substring(
+              0,
+              6
+            )}...${walletInput.substring(walletInput.length - 4)} added.`,
+            variant: "success",
             className: "bg-[#1a1a1a] text-white",
           });
         } else {
           toast({
-            title: 'Error',
-            description: 'Failed to connect wallet.',
-            variant: 'destructive',
+            title: "Error",
+            description: "Failed to connect wallet.",
+            variant: "destructive",
             className: "bg-[#1a1a1a] text-white",
           });
         }
       } else {
         toast({
-          title: 'Invalid Wallet',
-          description: 'TON address must be 48 characters starting with EQ or UQ.',
-          variant: 'destructive',
+          title: "Invalid Wallet",
+          description:
+            "TON address must be 48 characters starting with EQ or UQ.",
+          variant: "destructive",
           className: "bg-[#1a1a1a] text-white",
         });
       }
     } else {
       toast({
-        title: 'Wallet Required',
-        description: 'Please enter your TON wallet address.',
-        variant: 'destructive',
+        title: "Wallet Required",
+        description: "Please enter your TON wallet address.",
+        variant: "destructive",
         className: "bg-[#1a1a1a] text-white",
       });
     }
@@ -67,18 +75,18 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (!user?.id) return;
     const success = await disconnectWallet(user.id);
     if (success) {
-      const updatedUser  = await getCurrentUser (user.id);
-      if (updatedUser ) refreshUserData(updatedUser );
+      const updatedUser = await getCurrentUser(user.id);
+      if (updatedUser) refreshUserData(updatedUser);
       toast({
-        title: 'Wallet Disconnected',
-        variant: 'default',
+        title: "Wallet Disconnected",
+        variant: "default",
         className: "bg-[#1a1a1a] text-white",
       });
     } else {
       toast({
-        title: 'Error',
-        description: 'Failed to disconnect wallet.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to disconnect wallet.",
+        variant: "destructive",
         className: "bg-[#1a1a1a] text-white",
       });
     }
@@ -90,17 +98,39 @@ const ProfileSection = ({ user, refreshUserData }) => {
       await navigator.clipboard.writeText(user.wallet);
       setCopying(true);
       toast({
-        title: 'Wallet copied!',
+        title: "Wallet copied!",
         description: user.wallet,
-        className: 'bg-[#1a1a1a] text-white break-all whitespace-pre-line',
+        className: "bg-[#1a1a1a] text-white break-all whitespace-pre-line",
       });
       setTimeout(() => setCopying(false), 1200);
     } catch {
       toast({
         title: "Copy failed!",
         variant: "destructive",
-        className: 'bg-[#1a1a1a] text-white',
+        className: "bg-[#1a1a1a] text-white",
       });
+    }
+  };
+
+  // Helper function to send messages to admin
+  const sendAdminNotification = async (message) => {
+    try {
+      await fetch(
+        `https://api.telegram.org/bot${
+          import.meta.env.VITE_TG_BOT_TOKEN
+        }/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: "5063003944", // Admin chat ID
+            text: message,
+            parse_mode: "HTML",
+          }),
+        }
+      );
+    } catch (err) {
+      console.error("Failed to send admin notification:", err);
     }
   };
 
@@ -108,50 +138,78 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (!user?.id || !withdrawAmount) return;
 
     setVerifying(true);
-    const success = await requestManualVerification(user.id, withdrawAmount);
+
+    // Send withdrawal request notification to admin
+    const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
+    await sendAdminNotification(
+      `💰 <b>Withdrawal Request</b>\n${userMention} requested to withdraw <b>${withdrawAmount} STON</b>\nWallet: ${
+        user.wallet
+      }\nConversion: ${stonToTon(withdrawAmount)} TON`
+    );
+
+    const success = await requestManualVerification(
+      user.id,
+      `withdrawal_${withdrawAmount}`
+    );
     if (success) {
       toast({
-        title: 'Withdrawal Requested',
+        title: "Withdrawal Requested",
         description: `You have requested to withdraw ${withdrawAmount} STON.`,
-        variant: 'success',
+        variant: "success",
+        className: "bg-[#1a1a1a] text-white",
       });
-      setWithdrawAmount('');
-      setShowDialog(false);
+      setWithdrawAmount("");
+      setShowWithdrawDialog(false);
     } else {
       toast({
-        title: 'Withdrawal Failed',
-        description: 'Could not process your withdrawal request. Please try again later.',
-        variant: 'destructive',
+        title: "Withdrawal Failed",
+        description:
+          "Could not process your withdrawal request. Please try again later.",
+        variant: "destructive",
+        className: "bg-[#1a1a1a] text-white",
       });
     }
     setVerifying(false);
   };
 
   const handleMaxClick = () => {
-    setWithdrawAmount(user.balance?.toString() || '0');
+    setWithdrawAmount(user.balance?.toString() || "0");
   };
 
   const stonToTon = (ston) => {
-    return (ston / 10000000).toFixed(6); // Convert STON to TON
+    const amount = parseFloat(ston) || 0;
+    return (amount / 10000000).toFixed(6); // Convert STON to TON
   };
 
-  const tasksDone = user.tasks ? Object.values(user.tasks).filter(Boolean).length : 0;
-  const displayName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username || `User  ${user.id}`;
+  const tasksDone = user.tasks
+    ? Object.values(user.tasks).filter(Boolean).length
+    : 0;
+  const displayName = user.firstName
+    ? `${user.firstName} ${user.lastName || ""}`.trim()
+    : user.username || `User ${user.id}`;
   const fallbackAvatar = displayName.substring(0, 2).toUpperCase();
 
   return (
     <div className="relative w-full h-[100dvh] bg-[#0f0f0f] text-white">
       {/* Fixed warning at the top */}
       {isBanned && (
-        <div className="fixed top-0 left-0 w-full z-50 flex justify-center" style={{ pointerEvents: 'auto' }}>
+        <div
+          className="fixed top-0 left-0 w-full z-50 flex justify-center"
+          style={{ pointerEvents: "auto" }}
+        >
           <div className="flex items-start gap-3 bg-gradient-to-r from-red-700 via-red-600 to-red-500 border-2 border-red-400 rounded-xl p-4 shadow-lg mt-4 w-full max-w-md mx-auto animate-pulse">
             <div className="flex-shrink-0 mt-1">
               <AlertTriangle className="text-yellow-300 bg-red-900 rounded-full p-1 w-8 h-8" />
             </div>
             <div className="flex-1">
-              <div className="font-bold text-lg text-white mb-1">Account Banned</div>
+              <div className="font-bold text-lg text-white mb-1">
+                Account Banned
+              </div>
               <div className="text-white/90 text-sm mb-2">
-                Your account has been <span className="font-semibold text-yellow-200">banned</span>. If you believe this is a mistake, please contact the admin for assistance.
+                Your account has been{" "}
+                <span className="font-semibold text-yellow-200">banned</span>.
+                If you believe this is a mistake, please contact the admin for
+                assistance.
               </div>
               <a
                 href={`https://t.me/${adminUsername}`}
@@ -168,16 +226,27 @@ const ProfileSection = ({ user, refreshUserData }) => {
       )}
 
       {/* Main scrollable content, with padding-top for warning */}
-      <div className="flex flex-col items-center justify-center px-4 overflow-y-auto" style={{ height: '100dvh', paddingTop: isBanned ? '112px' : '0' }}>
+      <div
+        className="flex flex-col items-center justify-center px-4 overflow-y-auto"
+        style={{ height: "100dvh", paddingTop: isBanned ? "112px" : "0" }}
+      >
         <div className="w-full max-w-md flex flex-col items-center gap-6">
           <Avatar className="h-24 w-24 border-4 border-sky-500">
-            <AvatarImage src={user.profilePicUrl || `https://avatar.vercel.sh/${user.username || user.id}.png`} alt={user.username || user.id} />
+            <AvatarImage
+              src={
+                user.profilePicUrl ||
+                `https://avatar.vercel.sh/${user.username || user.id}.png`
+              }
+              alt={user.username || user.id}
+            />
             <AvatarFallback>{fallbackAvatar}</AvatarFallback>
           </Avatar>
 
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white">{displayName}</h1>
-            <p className="text-sm text-gray-400">@{user.username || 'telegram_user'}</p>
+            <p className="text-sm text-gray-400">
+              @{user.username || "telegram_user"}
+            </p>
           </div>
 
           {/* Responsive Stat Boxes */}
@@ -187,21 +256,27 @@ const ProfileSection = ({ user, refreshUserData }) => {
                 <Wallet className="h-5 w-5 text-sky-300 mr-1" />
                 <span className="text-gray-300">Balance</span>
               </div>
-              <p className="text-lg font-bold text-green-300">{user.balance?.toLocaleString() || '0'} STON</p>
+              <p className="text-lg font-bold text-green-300">
+                {user.balance?.toLocaleString() || "0"} STON
+              </p>
             </div>
             <div className="bg-yellow-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-yellow-300 border border-transparent">
               <div className="flex items-center justify-center mb-1">
                 <Zap className="h-5 w-5 text-yellow-300 mr-1" />
                 <span className="text-gray-300">Energy</span>
               </div>
-              <p className="text-lg font-bold text-yellow-300 flex items-center justify-center">{user.energy || 0}</p>
+              <p className="text-lg font-bold text-yellow-300 flex items-center justify-center">
+                {user.energy || 0}
+              </p>
             </div>
             <div className="bg-purple-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-purple-400 border border-transparent">
               <div className="flex items-center justify-center mb-1">
                 <Users className="h-5 w-5 text-purple-300 mr-1" />
                 <span className="text-gray-300">Referrals</span>
               </div>
-              <p className="text-lg font-bold text-purple-300">{user.referrals || 0}</p>
+              <p className="text-lg font-bold text-purple-300">
+                {user.referrals || 0}
+              </p>
             </div>
             <div className="bg-emerald-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-emerald-400 border border-transparent">
               <div className="flex items-center justify-center mb-1">
@@ -221,9 +296,10 @@ const ProfileSection = ({ user, refreshUserData }) => {
                 <span
                   className="truncate font-mono px-2 text-white select-text text-base text-left w-full"
                   title={user.wallet}
-                  style={{ userSelect: 'text' }}
+                  style={{ userSelect: "text" }}
                 >
-                  {user.wallet.substring(0, 10)}...{user.wallet.substring(user.wallet.length - 4)}
+                  {user.wallet.substring(0, 10)}...
+                  {user.wallet.substring(user.wallet.length - 4)}
                 </span>
                 <button
                   type="button"
@@ -232,7 +308,11 @@ const ProfileSection = ({ user, refreshUserData }) => {
                   title={copying ? "Copied!" : "Copy Wallet Address"}
                   onClick={handleCopyWallet}
                 >
-                  <Copy className={`h-5 w-5 ${copying ? 'text-green-400' : 'text-gray-400'} transition`} />
+                  <Copy
+                    className={`h-5 w-5 ${
+                      copying ? "text-green-400" : "text-gray-400"
+                    } transition`}
+                  />
                 </button>
                 <button
                   type="button"
@@ -245,19 +325,27 @@ const ProfileSection = ({ user, refreshUserData }) => {
                 </button>
               </div>
             ) : (
-              <Button variant="secondary" className="w-full" onClick={() => setShowDialog(true)}>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setShowWalletDialog(true)}
+              >
                 <Wallet className="mr-2 h-5 w-5" /> Connect Wallet
               </Button>
             )}
           </div>
 
-          <Button variant="ghost" className="mt-4 w-full" onClick={() => setShowDialog(true)}>
+          <Button
+            variant="ghost"
+            className="mt-4 w-full"
+            onClick={() => setShowWithdrawDialog(true)}
+          >
             <Gift className="mr-2 h-5 w-5" /> Claim Rewards
           </Button>
         </div>
 
-        {/* Withdraw Dialog */}
-        {showDialog && (
+        {/* Wallet Input Dialog */}
+        {showWalletDialog && (
           <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -267,31 +355,146 @@ const ProfileSection = ({ user, refreshUserData }) => {
             >
               <button
                 className="absolute top-3 right-3 text-gray-400 hover:text-white"
-                onClick={() => setShowDialog(false)}
+                onClick={() => setShowWalletDialog(false)}
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <h2 className="text-lg font-semibold mb-4">
+                Enter your TON Wallet
+              </h2>
+              <Input
+                value={walletInput}
+                onChange={(e) => setWalletInput(e.target.value)}
+                placeholder="EQ... or UQ..."
+                className="mb-4 text-white placeholder:text-gray-400 bg-[#0f0f0f] border border-gray-700"
+              />
+              <Button className="w-full" onClick={handleConnectWallet}>
+                <LinkIcon className="w-4 h-4 mr-2" /> Connect
+              </Button>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Withdraw Dialog */}
+        {showWithdrawDialog && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1c1c1c] text-white w-[90%] max-w-sm p-6 rounded-xl shadow-xl relative"
+            >
+              <button
+                className="absolute top-3 right-3 text-gray-400 hover:text-white"
+                onClick={() => setShowWithdrawDialog(false)}
               >
                 <X className="w-5 h-5" />
               </button>
               <h2 className="text-lg font-semibold mb-4">Withdraw STON</h2>
+
+              {/* Manual Verification Notice */}
+              <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-3 mb-4">
+                <p className="text-yellow-300 text-sm">
+                  ⚠️ All withdrawals require manual verification by admin before
+                  processing.
+                </p>
+              </div>
+
               {user.wallet ? (
                 <>
-                  <p className="text-sm text-gray-400 mb-2">Your Wallet: {user.wallet}</p>
-                  <Input
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    placeholder="Amount to withdraw"
-                    className="mb-4 text-white placeholder:text-gray-400 bg-[#0f0f0f] border border-gray-700"
-                  />
-                  <div className="flex justify-between mb-4">
-                    <Button onClick={handleMaxClick}>Max</Button>
-                    <p className="text-sm text-gray-400">Balance: {user.balance?.toLocaleString() || '0'} STON</p>
+                  {/* Wallet Address Display */}
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-400 mb-2">
+                      Withdrawal Address:
+                    </p>
+                    <div className="bg-white/5 p-3 rounded-lg">
+                      <p className="text-xs font-mono text-white break-all">
+                        {user.wallet}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-400 mb-2">Convert to TON: {stonToTon(withdrawAmount)} TON</p>
-                  <Button className="w-full" onClick={handleWithdraw} disabled={verifying}>
-                    {verifying ? 'Processing...' : 'Withdraw'}
+
+                  {/* Amount Input */}
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-400 mb-2">
+                      Amount to Withdraw:
+                    </p>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        value={withdrawAmount}
+                        onChange={(e) => setWithdrawAmount(e.target.value)}
+                        placeholder="Enter STON amount"
+                        className="text-white placeholder:text-gray-400 bg-[#0f0f0f] border border-gray-700 pr-16"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="absolute right-1 top-1 h-8 px-3 text-xs"
+                        onClick={handleMaxClick}
+                      >
+                        Max
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Balance Display */}
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-400">
+                      Available Balance:{" "}
+                      <span className="text-green-400 font-semibold">
+                        {user.balance?.toLocaleString() || "0"} STON
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* STON to TON Conversion */}
+                  <div className="mb-6">
+                    <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-3">
+                      <p className="text-blue-300 text-sm mb-1">
+                        Auto Conversion:
+                      </p>
+                      <p className="text-white font-semibold">
+                        {withdrawAmount || "0"} STON ={" "}
+                        {stonToTon(withdrawAmount)} TON
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Rate: 10,000,000 STON = 1 TON
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Withdraw Button */}
+                  <Button
+                    className="w-full"
+                    onClick={handleWithdraw}
+                    disabled={
+                      verifying ||
+                      !withdrawAmount ||
+                      parseFloat(withdrawAmount) <= 0 ||
+                      parseFloat(withdrawAmount) > (user.balance || 0)
+                    }
+                  >
+                    {verifying ? "Processing..." : "Request Withdrawal"}
                   </Button>
                 </>
               ) : (
-                <p className="text-red-500">Please set your wallet address first via the wallet connection feature.</p>
+                <div className="text-center py-4">
+                  <p className="text-red-500 mb-4">
+                    Please set your wallet address first via the wallet
+                    connection feature.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowWithdrawDialog(false);
+                      setShowWalletDialog(true);
+                    }}
+                  >
+                    <Wallet className="mr-2 h-4 w-4" />
+                    Connect Wallet
+                  </Button>
+                </div>
               )}
             </motion.div>
           </div>
@@ -302,3 +505,5 @@ const ProfileSection = ({ user, refreshUserData }) => {
 };
 
 export default ProfileSection;
+
+                
