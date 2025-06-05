@@ -10,11 +10,15 @@ import { connectWallet, disconnectWallet, getCurrentUser , requestManualVerifica
 const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState('');
   const [showDialog, setShowDialog] = useState(false);
+  const [copying, setCopying] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [verifying, setVerifying] = useState(false);
   const { toast } = useToast();
 
+  // Get admin Telegram username from environment variable, fallback to empty string
   const adminUsername = import.meta.env.VITE_ADMIN_TG_USERNAME;
+
+  // Check if user is banned
   const isBanned = user.isBanned;
 
   const handleConnectWallet = async () => {
@@ -84,11 +88,13 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (!user.wallet) return;
     try {
       await navigator.clipboard.writeText(user.wallet);
+      setCopying(true);
       toast({
         title: 'Wallet copied!',
         description: user.wallet,
         className: 'bg-[#1a1a1a] text-white break-all whitespace-pre-line',
       });
+      setTimeout(() => setCopying(false), 1200);
     } catch {
       toast({
         title: "Copy failed!",
@@ -137,7 +143,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
     <div className="relative w-full h-[100dvh] bg-[#0f0f0f] text-white">
       {/* Fixed warning at the top */}
       {isBanned && (
-        <div className="fixed top-0 left-0 w-full z-50 flex justify-center">
+        <div className="fixed top-0 left-0 w-full z-50 flex justify-center" style={{ pointerEvents: 'auto' }}>
           <div className="flex items-start gap-3 bg-gradient-to-r from-red-700 via-red-600 to-red-500 border-2 border-red-400 rounded-xl p-4 shadow-lg mt-4 w-full max-w-md mx-auto animate-pulse">
             <div className="flex-shrink-0 mt-1">
               <AlertTriangle className="text-yellow-300 bg-red-900 rounded-full p-1 w-8 h-8" />
@@ -161,7 +167,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
         </div>
       )}
 
-      {/* Main scrollable content */}
+      {/* Main scrollable content, with padding-top for warning */}
       <div className="flex flex-col items-center justify-center px-4 overflow-y-auto" style={{ height: '100dvh', paddingTop: isBanned ? '112px' : '0' }}>
         <div className="w-full max-w-md flex flex-col items-center gap-6">
           <Avatar className="h-24 w-24 border-4 border-sky-500">
@@ -223,10 +229,10 @@ const ProfileSection = ({ user, refreshUserData }) => {
                   type="button"
                   className="flex items-center p-1.5 rounded-full transition hover:bg-sky-400/20 active:scale-95"
                   aria-label="Copy Wallet Address"
-                  title="Copy Wallet Address"
+                  title={copying ? "Copied!" : "Copy Wallet Address"}
                   onClick={handleCopyWallet}
                 >
-                  <Copy className="h-5 w-5 text-gray-400" />
+                  <Copy className={`h-5 w-5 ${copying ? 'text-green-400' : 'text-gray-400'} transition`} />
                 </button>
                 <button
                   type="button"
@@ -285,7 +291,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
                   </Button>
                 </>
               ) : (
-                <p className="text-red-500">Please connect your wallet first.</p>
+                <p className="text-red-500">Please set your wallet address first via the wallet connection feature.</p>
               )}
             </motion.div>
           </div>
