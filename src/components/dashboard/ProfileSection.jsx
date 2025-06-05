@@ -3,17 +3,23 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X, AlertTriangle, Send } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X, AlertTriangle, Send, History, Calendar, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { connectWallet, disconnectWallet, getCurrentUser, requestManualVerification } from '@/data';
+import { connectWallet, disconnectWallet, getCurrentUser } from '@/data';
+import { createWithdrawalRequest, getUserWithdrawalHistory } from '@/data/firestore/adminActions';
 
 const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState("");
   const [showWalletDialog, setShowWalletDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [copying, setCopying] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [withdrawalHistory, setWithdrawalHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const { toast } = useToast();
 
   // Get admin Telegram username from environment variable, fallback to empty string
@@ -137,24 +143,43 @@ const ProfileSection = ({ user, refreshUserData }) => {
   const handleWithdraw = async () => {
     if (!user?.id || !withdrawAmount) return;
 
+    // Validate amount
+    const amount = parseFloat(withdrawAmount);
+    if (amount <= 0 || amount > (user.balance || 0)) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid amount within your balance.",
+        variant: "destructive",
+        className: "bg-[#1a1a1a] text-white",
+      });
+      return;
+    }
+
     setVerifying(true);
 
-    // Send withdrawal request notification to admin
-    const userMention = user.username ? `@${user.username}` : `User ${user.id}`;
-    await sendAdminNotification(
-      `💰 <b>Withdrawal Request</b>\n${userMention} requested to withdraw <b>${withdrawAmount} STON</b>\nWallet: ${
-        user.wallet
-      }\nConversion: ${stonToTon(withdrawAmount)} TON`
+    // Create withdrawal request
+    const success = await createWithdrawalRequest(
+      user.id,
+      amount,
+      user.wallet,
+      user.balance,
+      user.username
     );
 
-    const success = await requestManualVerification(
-      user.id,
-      `withdrawal_${withdrawAmount}`
-    );
     if (success) {
+      // Send withdrawal request notification to admin
+      const userMention = user.username
+        ? `@${user.username}`
+        : `User ${user.id}`;
+      await sendAdminNotification(
+        `💰 <b>Withdrawal Request</b>\n${userMention} requested to withdraw <b>${amount} STON</b>\nWallet: ${
+          user.wallet
+        }\nConversion: ${stonToTon(amount)} TON`
+      );
+
       toast({
         title: "Withdrawal Requested",
-        description: `You have requested to withdraw ${withdrawAmount} STON.`,
+        description: `You have requested to withdraw ${amount} STON.`,
         variant: "success",
         className: "bg-[#1a1a1a] text-white",
       });
@@ -172,13 +197,59 @@ const ProfileSection = ({ user, refreshUserData }) => {
     setVerifying(false);
   };
 
+  const handleShowHistory = async () => {
+    setLoadingHistory(true);
+    setShowHistoryDialog(true);
+
+    const history = await getUserWithdrawalHistory(user.id);
+    setWithdrawalHistory(history);
+    setLoadingHistory(false);
+  };
+
   const handleMaxClick = () => {
     setWithdrawAmount(user.balance?.toString() || "0");
   };
 
   const stonToTon = (ston) => {
     const amount = parseFloat(ston) || 0;
-    return (amount / 10000000).toFixed(6); // Convert STON to TON
+    return (amount / 10000000).toFixed(6);
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "Unknown";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString();
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "pending":
+        return (
+          <Badge
+            variant="outline"
+            className="text-yellow-300 border-yellow-600"
+          >
+            <Clock className="h-3 w-3 mr-1" />
+            Pending
+          </Badge>
+        );
+      case "approved":
+        return (
+          <Badge variant="outline" className="text-green-300 border-green-600">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Approved
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="outline" className="text-red-300 border-red-600">
+            <XCircle className="h-3 w-3 mr-1" />
+            Rejected
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
+    }
   };
 
   const tasksDone = user.tasks
@@ -335,13 +406,24 @@ const ProfileSection = ({ user, refreshUserData }) => {
             )}
           </div>
 
-          <Button
-            variant="ghost"
-            className="mt-4 w-full"
-            onClick={() => setShowWithdrawDialog(true)}
-          >
-            <Gift className="mr-2 h-5 w-5" /> Claim Rewards
-          </Button>
+          {/* Action Buttons */}
+          <div className="w-full space-y-3">
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setShowWithdrawDialog(true)}
+            >
+              <Gift className="mr-2 h-5 w-5" /> Claim Rewards
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleShowHistory}
+            >
+              <History className="mr-2 h-5 w-5" /> Withdrawal History
+            </Button>
+          </div>
         </div>
 
         {/* Wallet Input Dialog */}
@@ -475,7 +557,14 @@ const ProfileSection = ({ user, refreshUserData }) => {
                       parseFloat(withdrawAmount) > (user.balance || 0)
                     }
                   >
-                    {verifying ? "Processing..." : "Request Withdrawal"}
+                    {verifying ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Request Withdrawal"
+                    )}
                   </Button>
                 </>
               ) : (
@@ -499,11 +588,125 @@ const ProfileSection = ({ user, refreshUserData }) => {
             </motion.div>
           </div>
         )}
+
+        {/* Withdrawal History Dialog */}
+        {showHistoryDialog && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1c1c1c] text-white w-[90%] max-w-lg p-6 rounded-xl shadow-xl relative max-h-[80vh] overflow-hidden"
+            >
+              <button
+                className="absolute top-3 right-3 text-gray-400 hover:text-white z-10"
+                onClick={() => setShowHistoryDialog(false)}
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h2 className="text-lg font-semibold mb-4 flex items-center">
+                <History className="mr-2 h-5 w-5" />
+                Withdrawal History
+              </h2>
+
+              <div className="overflow-y-auto max-h-[60vh] pr-2">
+                {loadingHistory ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <span className="ml-2 text-gray-400">
+                      Loading history...
+                    </span>
+                  </div>
+                ) : withdrawalHistory.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-400">No withdrawal history found</p>
+                    <p className="text-gray-500 text-sm mt-2">
+                      Your withdrawal requests will appear here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {withdrawalHistory.map((withdrawal) => (
+                      <Card
+                        key={withdrawal.id}
+                        className="bg-[#0f0f0f] border-gray-700"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <Wallet className="h-4 w-4 text-sky-400" />
+                              <span className="font-semibold text-white">
+                                {withdrawal.amount?.toLocaleString()} STON
+                              </span>
+                            </div>
+                            {getStatusBadge(withdrawal.status)}
+                          </div>
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">TON Amount:</span>
+                              <span className="text-blue-400 font-mono">
+                                {stonToTon(withdrawal.amount)} TON
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Date:</span>
+                              <span className="text-white flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(withdrawal.createdAt)}
+                              </span>
+                            </div>
+
+                            {withdrawal.walletAddress && (
+                              <div className="mt-2">
+                                <span className="text-gray-400 text-xs">
+                                  Wallet:
+                                </span>
+                                <p className="text-white font-mono text-xs break-all bg-white/5 p-2 rounded mt-1">
+                                  {withdrawal.walletAddress}
+                                </p>
+                              </div>
+                            )}
+
+                            {withdrawal.status === "approved" &&
+                              withdrawal.approvedAt && (
+                                <div className="flex justify-between text-xs">
+                                  <span className="text-gray-400">
+                                    Approved:
+                                  </span>
+                                  <span className="text-green-400">
+                                    {formatDate(withdrawal.approvedAt)}
+                                  </span>
+                                </div>
+                              )}
+
+                            {withdrawal.status === "rejected" &&
+                              withdrawal.rejectedAt && (
+                                <div className="flex justify-between text-xs">
+                                  <span className="text-gray-400">
+                                    Rejected:
+                                  </span>
+                                  <span className="text-red-400">
+                                    {formatDate(withdrawal.rejectedAt)}
+                                  </span>
+                                </div>
+                              )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default ProfileSection;
-
-                
