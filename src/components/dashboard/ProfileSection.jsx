@@ -64,7 +64,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
     const success = await disconnectWallet(user.id);
     if (success) {
       const updatedUser  = await getCurrentUser (user.id);
-      if (updatedUser ) refreshUser Data(updatedUser );
+      if (updatedUser ) refreshUserData(updatedUser );
       toast({
         title: 'Wallet Disconnected',
         variant: 'default',
