@@ -7,7 +7,7 @@ import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink,
 import { useToast } from '@/components/ui/use-toast';
 import { connectWallet, disconnectWallet, getCurrentUser , requestManualVerification } from '@/data';
 
-const ProfileSection = ({ user, refreshUser Data }) => {
+const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -24,7 +24,7 @@ const ProfileSection = ({ user, refreshUser Data }) => {
         const success = await connectWallet(user.id, walletInput);
         if (success) {
           const updatedUser  = await getCurrentUser (user.id);
-          if (updatedUser ) refreshUser Data(updatedUser );
+          if (updatedUser ) refreshUserData(updatedUser );
           setWalletInput('');
           setShowDialog(false);
           toast({
