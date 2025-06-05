@@ -11,7 +11,7 @@ import PendingWithdrawTab from '@/components/admin/PendingWithdrawTab';
 
 import {
   getAllUsers,
-  toggleUser BanStatus
+  toggleUserBanStatus
 } from '@/data/firestore/userActions';
 import {
   getAllTasks,
