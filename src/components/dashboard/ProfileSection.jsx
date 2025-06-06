@@ -1,14 +1,35 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet, Link as LinkIcon, Gift, Zap, Users, CheckCircle2, Copy, Unlink, X, AlertTriangle, Send, History, Calendar, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { connectWallet, disconnectWallet, getCurrentUser } from '@/data';
-import { createWithdrawalRequest, getUserWithdrawalHistory } from '@/data/firestore/adminActions';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Wallet,
+  Link as LinkIcon,
+  Gift,
+  Zap,
+  Users,
+  CheckCircle2,
+  Copy,
+  Unlink,
+  X,
+  AlertTriangle,
+  Send,
+  History,
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Loader2,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { connectWallet, disconnectWallet, getCurrentUser } from "@/data";
+import {
+  createWithdrawalRequest,
+  getUserWithdrawalHistory,
+} from "@/data/firestore/adminActions";
 
 const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState("");
@@ -683,57 +704,55 @@ const ProfileSection = ({ user, refreshUserData }) => {
 
                             <div className="flex justify-between">
                               <span className="text-gray-400">Date:</span>
-                              <span className="text-white flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {formatDate(withdrawal.createdAt)}
+                          <span className="text-white flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatDate(withdrawal.createdAt)}
+                          </span>
+                        </div>
+
+                        {withdrawal.walletAddress && (
+                          <div className="mt-2">
+                            <span className="text-gray-400 text-xs">
+                              Wallet:
+                            </span>
+                            <p className="text-white font-mono text-xs break-all bg-gray-800/50 p-2 rounded mt-1 border border-gray-700/50">
+                              {withdrawal.walletAddress}
+                            </p>
+                          </div>
+                        )}
+
+                        {withdrawal.status === "approved" &&
+                          withdrawal.approvedAt && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">
+                                Approved:
+                              </span>
+                              <span className="text-green-400">
+                                {formatDate(withdrawal.approvedAt)}
                               </span>
                             </div>
+                          )}
 
-                            {withdrawal.walletAddress && (
-                              <div className="mt-2">
-                                <span className="text-gray-400 text-xs">
-                                  Wallet:
-                                </span>
-                                <p className="text-white font-mono text-xs break-all bg-white/5 p-2 rounded mt-1">
-                                  {withdrawal.walletAddress}
-                                </p>
-                              </div>
-                            )}
-
-                            {withdrawal.status === "approved" &&
-                              withdrawal.approvedAt && (
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-gray-400">
-                                    Approved:
-                                  </span>
-                                  <span className="text-green-400">
-                                    {formatDate(withdrawal.approvedAt)}
-                                  </span>
-                                </div>
-                              )}
-
-                            {withdrawal.status === "rejected" &&
-                              withdrawal.rejectedAt && (
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-gray-400">
-                                    Rejected:
-                                  </span>
-                                  <span className="text-red-400">
-                                    {formatDate(withdrawal.rejectedAt)}
-                                  </span>
-                                </div>
-                              )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </div>
+                        {withdrawal.status === "rejected" &&
+                          withdrawal.rejectedAt && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">
+                                Rejected:
+                              </span>
+                              <span className="text-red-400">
+                                {formatDate(withdrawal.rejectedAt)}
+                              </span>
+                            </div>
+                          )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
