@@ -116,6 +116,7 @@ export const getPendingWithdrawals = async () => {
       });
     });
     
+    console.log('getPendingWithdrawals result:', withdrawals); // Debug log
     return withdrawals;
   } catch (error) {
     console.error('Error fetching pending withdrawals:', error);
@@ -240,6 +241,7 @@ export const getUserWithdrawalHistory = async (userId) => {
       });
     });
     
+    console.log('getUserWithdrawalHistory result:', withdrawals); // Debug log
     return withdrawals;
   } catch (error) {
     console.error('Error fetching user withdrawal history:', error);
