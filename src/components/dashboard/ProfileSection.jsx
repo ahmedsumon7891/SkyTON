@@ -28,7 +28,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { connectWallet, disconnectWallet, getCurrentUser  } from "@/data";
 import {
   createWithdrawalRequest,
-  getUser WithdrawalHistory,
+  getUserWithdrawalHistory,
 } from "@/data/firestore/adminActions";
 
 const ProfileSection = ({ user, refreshUserData }) => {
@@ -234,7 +234,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
 
     try {
       console.log("Fetching withdrawal history for user:", user.id); // Debug log
-      const history = await getUser WithdrawalHistory(user.id);
+      const history = await getUserWithdrawalHistory(user.id);
       console.log("Withdrawal history received:", history); // Debug log
       setWithdrawalHistory(history || []);
     } catch (error) {
