@@ -23,7 +23,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  Help,
+  HelpCircle,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { connectWallet, disconnectWallet, getCurrentUser } from "@/data";
@@ -544,7 +544,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
               window.open(`https://t.me/${adminUsername}`, "_blank");
             }}
           >
-            <Help className="h-5 w-5" />
+            <HelpCircle className="h-5 w-5" />
           </Button>
         </div>
 
