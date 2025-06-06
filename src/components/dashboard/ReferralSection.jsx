@@ -3,12 +3,12 @@ import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Copy, Loader2, QrCode, X } from 'lucide-react'; // Added QrCode and X icons
+import { Copy, Loader2, QrCode, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { generateReferralLink } from '@/data';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import QRCode from '@/components/ui/QRCode'; // Import the QRCode component
+import QRCode from '@/components/ui/QRCode';
 
 const defaultAvatar = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB_4gKwn8q2WBPTwnV14Jmh3B5g56SCiGEBA&usqp=CAU";
 
@@ -28,7 +28,7 @@ const ReferralSection = ({ user }) => {
   const [referredUsers, setReferredUsers] = useState([]);
   const [referrerInfo, setReferrerInfo] = useState(null);
   const [loadingReferrals, setLoadingReferrals] = useState(true);
-  const [showQRCodePopup, setShowQRCodePopup] = useState(false); // State for QR code popup
+  const [showQRCodePopup, setShowQRCodePopup] = useState(false);
 
   const referralLink = user.referralLink || generateReferralLink(user.id);
 
@@ -64,7 +64,7 @@ const ReferralSection = ({ user }) => {
             const data = snap.data();
             return {
               id: uid,
-              name: data.username || data.firstName || `User ${uid}`,
+              name: data.username || data.firstName || `User  ${uid}`,
               photo: data.profilePicUrl || defaultAvatar
             };
           }
@@ -83,7 +83,7 @@ const ReferralSection = ({ user }) => {
           const data = snap.data();
           setReferrerInfo({
             id: user.invitedBy,
-            name: data.username || data.firstName || `User ${user.invitedBy}`,
+            name: data.username || data.firstName || `User  ${user.invitedBy}`,
             photo: data.profilePicUrl || defaultAvatar
           });
         }
