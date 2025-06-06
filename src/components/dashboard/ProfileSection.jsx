@@ -198,12 +198,36 @@ const ProfileSection = ({ user, refreshUserData }) => {
   };
 
   const handleShowHistory = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "User ID not found",
+        variant: "destructive",
+        className: "bg-[#1a1a1a] text-white",
+      });
+      return;
+    }
+
     setLoadingHistory(true);
     setShowHistoryDialog(true);
 
-    const history = await getUserWithdrawalHistory(user.id);
-    setWithdrawalHistory(history);
-    setLoadingHistory(false);
+    try {
+      console.log("Fetching withdrawal history for user:", user.id); // Debug log
+      const history = await getUserWithdrawalHistory(user.id);
+      console.log("Withdrawal history received:", history); // Debug log
+      setWithdrawalHistory(history || []);
+    } catch (error) {
+      console.error("Error fetching withdrawal history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load withdrawal history",
+        variant: "destructive",
+        className: "bg-[#1a1a1a] text-white",
+      });
+      setWithdrawalHistory([]);
+    } finally {
+      setLoadingHistory(false);
+    }
   };
 
   const handleMaxClick = () => {
@@ -217,8 +241,13 @@ const ProfileSection = ({ user, refreshUserData }) => {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "Unknown";
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString();
+    try {
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleString();
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid Date";
+    }
   };
 
   const getStatusBadge = (status) => {
