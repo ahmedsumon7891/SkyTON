@@ -104,7 +104,21 @@ export const rejectTask = async (userId, taskId) => {
 // Get all pending withdrawal requests
 export const getPendingWithdrawals = async () => {
   try {
+    console.log('Fetching pending withdrawals...'); // Debug log
     const withdrawalsRef = collection(db, 'withdrawals');
+    
+    // First, let's try to get all documents to see what's there
+    const allDocsQuery = query(withdrawalsRef);
+    const allDocsSnapshot = await getDocs(allDocsQuery);
+    
+    console.log('Total withdrawal documents found:', allDocsSnapshot.size); // Debug log
+    
+    // Log all documents to see their structure
+    allDocsSnapshot.forEach((doc) => {
+      console.log('Document ID:', doc.id, 'Data:', doc.data());
+    });
+    
+    // Now try the specific query for pending withdrawals
     const q = query(withdrawalsRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     
@@ -120,13 +134,36 @@ export const getPendingWithdrawals = async () => {
     return withdrawals;
   } catch (error) {
     console.error('Error fetching pending withdrawals:', error);
-    return [];
+    
+    // If the orderBy query fails, try without orderBy
+    try {
+      console.log('Retrying without orderBy...');
+      const withdrawalsRef = collection(db, 'withdrawals');
+      const q = query(withdrawalsRef, where('status', '==', 'pending'));
+      const querySnapshot = await getDocs(q);
+      
+      const withdrawals = [];
+      querySnapshot.forEach((doc) => {
+        withdrawals.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      console.log('getPendingWithdrawals result (without orderBy):', withdrawals);
+      return withdrawals;
+    } catch (retryError) {
+      console.error('Error in retry attempt:', retryError);
+      return [];
+    }
   }
 };
 
 // Approve a withdrawal request
 export const approveWithdrawal = async (withdrawalId, userId, amount) => {
   try {
+    console.log(`Approving withdrawal: ${withdrawalId} for user: ${userId}, amount: ${amount}`);
+    
     // Update withdrawal status
     const withdrawalRef = doc(db, 'withdrawals', withdrawalId);
     await updateDoc(withdrawalRef, {
@@ -170,6 +207,8 @@ export const approveWithdrawal = async (withdrawalId, userId, amount) => {
 // Reject a withdrawal request
 export const rejectWithdrawal = async (withdrawalId) => {
   try {
+    console.log(`Rejecting withdrawal: ${withdrawalId}`);
+    
     // Update withdrawal status
     const withdrawalRef = doc(db, 'withdrawals', withdrawalId);
     await updateDoc(withdrawalRef, {
@@ -207,9 +246,11 @@ export const rejectWithdrawal = async (withdrawalId) => {
 // Create a withdrawal request (to be used in ProfileSection)
 export const createWithdrawalRequest = async (userId, amount, walletAddress, userBalance, username) => {
   try {
+    console.log(`Creating withdrawal request for user ${userId}, amount: ${amount} STON`);
+    
     const withdrawalsRef = collection(db, 'withdrawals');
-    await addDoc(withdrawalsRef, {
-      userId,
+    const docRef = await addDoc(withdrawalsRef, {
+      userId: userId.toString(), // Ensure userId is a string
       username: username || null,
       amount: parseFloat(amount),
       walletAddress,
@@ -218,7 +259,7 @@ export const createWithdrawalRequest = async (userId, amount, walletAddress, use
       createdAt: serverTimestamp()
     });
     
-    console.log(`Withdrawal request created for user ${userId}, amount: ${amount} STON`);
+    console.log(`Withdrawal request created with ID: ${docRef.id} for user ${userId}, amount: ${amount} STON`);
     return true;
   } catch (error) {
     console.error('Error creating withdrawal request:', error);
@@ -229,20 +270,58 @@ export const createWithdrawalRequest = async (userId, amount, walletAddress, use
 // Get withdrawal history for a specific user
 export const getUserWithdrawalHistory = async (userId) => {
   try {
-    const withdrawalsRef = collection(db, 'withdrawals');
-    const q = query(withdrawalsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
+    console.log(`Fetching withdrawal history for user: ${userId}`);
     
-    const withdrawals = [];
-    querySnapshot.forEach((doc) => {
-      withdrawals.push({
-        id: doc.id,
-        ...doc.data()
-      });
+    const withdrawalsRef = collection(db, 'withdrawals');
+    
+    // First, let's try to get all documents for this user to see what's there
+    const allUserDocsQuery = query(withdrawalsRef, where('userId', '==', userId.toString()));
+    const allUserDocsSnapshot = await getDocs(allUserDocsQuery);
+    
+    console.log(`Total withdrawal documents found for user ${userId}:`, allUserDocsSnapshot.size);
+    
+    // Log all documents to see their structure
+    allUserDocsSnapshot.forEach((doc) => {
+      console.log('User withdrawal document ID:', doc.id, 'Data:', doc.data());
     });
     
-    console.log('getUserWithdrawalHistory result:', withdrawals); // Debug log
-    return withdrawals;
+    // Now try the specific query with orderBy
+    try {
+      const q = query(withdrawalsRef, where('userId', '==', userId.toString()), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const withdrawals = [];
+      querySnapshot.forEach((doc) => {
+        withdrawals.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      console.log('getUserWithdrawalHistory result:', withdrawals);
+      return withdrawals;
+    } catch (orderByError) {
+      console.log('OrderBy failed, trying without orderBy...');
+      
+      // If orderBy fails, return the results without ordering
+      const withdrawals = [];
+      allUserDocsSnapshot.forEach((doc) => {
+        withdrawals.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      // Sort manually by createdAt
+      withdrawals.sort((a, b) => {
+        const dateA = a.createdAt?.toDate?.() || new Date(0);
+        const dateB = b.createdAt?.toDate?.() || new Date(0);
+        return dateB - dateA;
+      });
+      
+      console.log('getUserWithdrawalHistory result (manual sort):', withdrawals);
+      return withdrawals;
+    }
   } catch (error) {
     console.error('Error fetching user withdrawal history:', error);
     return [];
