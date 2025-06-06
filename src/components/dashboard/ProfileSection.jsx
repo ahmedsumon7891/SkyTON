@@ -704,11 +704,11 @@ const ProfileSection = ({ user, refreshUserData }) => {
 
                             <div className="flex justify-between">
                               <span className="text-gray-400">Date:</span>
-                          <span className="text-white flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(withdrawal.createdAt)}
-                          </span>
-                        </div>
+                              <span className="text-white flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(withdrawal.createdAt)}
+                              </span>
+                            </div>
 
                         {withdrawal.walletAddress && (
                           <div className="mt-2">
@@ -747,7 +747,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                ))
               )}
             </div>
           </motion.div>
