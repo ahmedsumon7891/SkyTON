@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Wallet,
   Link as LinkIcon,
   Gift,
+  Zap,
   Users,
   CheckCircle2,
   Copy,
@@ -17,14 +18,18 @@ import {
   AlertTriangle,
   Send,
   History,
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
   Loader2,
-} from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { connectWallet, disconnectWallet, getCurrentUser  } from '@/data';
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { connectWallet, disconnectWallet, getCurrentUser  } from "@/data";
 import {
   createWithdrawalRequest,
   getUser WithdrawalHistory,
-} from '@/data/firestore/adminActions';
+} from "@/data/firestore/adminActions";
 
 const ProfileSection = ({ user, refreshUser Data }) => {
   const [walletInput, setWalletInput] = useState("");
@@ -59,7 +64,10 @@ const ProfileSection = ({ user, refreshUser Data }) => {
           setShowWalletDialog(false);
           toast({
             title: "Wallet Connected",
-            description: `Wallet ${walletInput.substring(0, 6)}...${walletInput.substring(walletInput.length - 4)} added.`,
+            description: `Wallet ${walletInput.substring(
+              0,
+              6
+            )}...${walletInput.substring(walletInput.length - 4)} added.`,
             variant: "success",
             className: "bg-[#1a1a1a] text-white",
           });
@@ -74,7 +82,8 @@ const ProfileSection = ({ user, refreshUser Data }) => {
       } else {
         toast({
           title: "Invalid Wallet",
-          description: "TON address must be 48 characters starting with EQ or UQ.",
+          description:
+            "TON address must be 48 characters starting with EQ or UQ.",
           variant: "destructive",
           className: "bg-[#1a1a1a] text-white",
         });
@@ -130,6 +139,28 @@ const ProfileSection = ({ user, refreshUser Data }) => {
     }
   };
 
+  // Helper function to send messages to admin
+  const sendAdminNotification = async (message) => {
+    try {
+      await fetch(
+        `https://api.telegram.org/bot${
+          import.meta.env.VITE_TG_BOT_TOKEN
+        }/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: "5063003944", // Admin chat ID
+            text: message,
+            parse_mode: "HTML",
+          }),
+        }
+      );
+    } catch (err) {
+      console.error("Failed to send admin notification:", err);
+    }
+  };
+
   const handleWithdraw = async () => {
     if (!user?.id || !withdrawAmount) return;
 
@@ -158,9 +189,13 @@ const ProfileSection = ({ user, refreshUser Data }) => {
 
     if (success) {
       // Send withdrawal request notification to admin
-      const userMention = user.username ? `@${user.username}` : `User  ${user.id}`;
+      const userMention = user.username
+        ? `@${user.username}`
+        : `User  ${user.id}`;
       await sendAdminNotification(
-        `💰 <b>Withdrawal Request</b>\n${userMention} requested to withdraw <b>${amount} STON</b>\nWallet: ${user.wallet}\nConversion: ${stonToTon(amount)} TON`
+        `💰 <b>Withdrawal Request</b>\n${userMention} requested to withdraw <b>${amount} STON</b>\nWallet: ${
+          user.wallet
+        }\nConversion: ${stonToTon(amount)} TON`
       );
 
       toast({
@@ -174,7 +209,8 @@ const ProfileSection = ({ user, refreshUser Data }) => {
     } else {
       toast({
         title: "Withdrawal Failed",
-        description: "Could not process your withdrawal request. Please try again later.",
+        description:
+          "Could not process your withdrawal request. Please try again later.",
         variant: "destructive",
         className: "bg-[#1a1a1a] text-white",
       });
@@ -197,7 +233,9 @@ const ProfileSection = ({ user, refreshUser Data }) => {
     setShowHistoryDialog(true);
 
     try {
+      console.log("Fetching withdrawal history for user:", user.id); // Debug log
       const history = await getUser WithdrawalHistory(user.id);
+      console.log("Withdrawal history received:", history); // Debug log
       setWithdrawalHistory(history || []);
     } catch (error) {
       console.error("Error fetching withdrawal history:", error);
@@ -261,23 +299,35 @@ const ProfileSection = ({ user, refreshUser Data }) => {
     }
   };
 
-  const tasksDone = user.tasks ? Object.values(user.tasks).filter(Boolean).length : 0;
-  const displayName = user.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : user.username || `User  ${user.id}`;
+  const tasksDone = user.tasks
+    ? Object.values(user.tasks).filter(Boolean).length
+    : 0;
+  const displayName = user.firstName
+    ? `${user.firstName} ${user.lastName || ""}`.trim()
+    : user.username || `User  ${user.id}`;
   const fallbackAvatar = displayName.substring(0, 2).toUpperCase();
 
   return (
     <div className="relative w-full h-[100dvh] bg-[#0f0f0f] text-white">
       {/* Fixed warning at the top */}
       {isBanned && (
-        <div className="fixed top-0 left-0 w-full z-50 flex justify-center" style={{ pointerEvents: "auto" }}>
+        <div
+          className="fixed top-0 left-0 w-full z-50 flex justify-center"
+          style={{ pointerEvents: "auto" }}
+        >
           <div className="flex items-start gap-3 bg-gradient-to-r from-red-700 via-red-600 to-red-500 border-2 border-red-400 rounded-xl p-4 shadow-lg mt-4 w-full max-w-md mx-auto animate-pulse">
             <div className="flex-shrink-0 mt-1">
               <AlertTriangle className="text-yellow-300 bg-red-900 rounded-full p-1 w-8 h-8" />
             </div>
             <div className="flex-1">
-              <div className="font-bold text-lg text-white mb-1">Account Banned</div>
+              <div className="font-bold text-lg text-white mb-1">
+                Account Banned
+              </div>
               <div className="text-white/90 text-sm mb-2">
-                Your account has been <span className="font-semibold text-yellow-200">banned</span>. If you believe this is a mistake, please contact the admin for assistance.
+                Your account has been{" "}
+                <span className="font-semibold text-yellow-200">banned</span>.
+                If you believe this is a mistake, please contact the admin for
+                assistance.
               </div>
               <a
                 href={`https://t.me/${adminUsername}`}
@@ -294,16 +344,27 @@ const ProfileSection = ({ user, refreshUser Data }) => {
       )}
 
       {/* Main scrollable content, with padding-top for warning */}
-      <div className="flex flex-col items-center justify-center px-4 overflow-y-auto" style={{ height: "100dvh", paddingTop: isBanned ? "112px" : "0" }}>
+      <div
+        className="flex flex-col items-center justify-center px-4 overflow-y-auto"
+        style={{ height: "100dvh", paddingTop: isBanned ? "112px" : "0" }}
+      >
         <div className="w-full max-w-md flex flex-col items-center gap-6">
           <Avatar className="h-24 w-24 border-4 border-sky-500">
-            <AvatarImage src={user.profilePicUrl || `https://avatar.vercel.sh/${user.username || user.id}.png`} alt={user.username || user.id} />
+            <AvatarImage
+              src={
+                user.profilePicUrl ||
+                `https://avatar.vercel.sh/${user.username || user.id}.png`
+              }
+              alt={user.username || user.id}
+            />
             <AvatarFallback>{fallbackAvatar}</AvatarFallback>
           </Avatar>
 
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white">{displayName}</h1>
-            <p className="text-sm text-gray-400">@{user.username || "telegram_user"}</p>
+            <p className="text-sm text-gray-400">
+              @{user.username || "telegram_user"}
+            </p>
           </div>
 
           {/* Responsive Stat Boxes */}
@@ -313,21 +374,27 @@ const ProfileSection = ({ user, refreshUser Data }) => {
                 <Wallet className="h-5 w-5 text-sky-300 mr-1" />
                 <span className="text-gray-300">Balance</span>
               </div>
-              <p className="text-lg font-bold text-green-300">{user.balance?.toLocaleString() || "0"} STON</p>
+              <p className="text-lg font-bold text-green-300">
+                {user.balance?.toLocaleString() || "0"} STON
+              </p>
             </div>
             <div className="bg-yellow-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-yellow-300 border border-transparent">
               <div className="flex items-center justify-center mb-1">
                 <Zap className="h-5 w-5 text-yellow-300 mr-1" />
                 <span className="text-gray-300">Energy</span>
               </div>
-              <p className="text-lg font-bold text-yellow-300 flex items-center justify-center">{user.energy || 0}</p>
+              <p className="text-lg font-bold text-yellow-300 flex items-center justify-center">
+                {user.energy || 0}
+              </p>
             </div>
             <div className="bg-purple-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-purple-400 border border-transparent">
               <div className="flex items-center justify-center mb-1">
                 <Users className="h-5 w-5 text-purple-300 mr-1" />
                 <span className="text-gray-300">Referrals</span>
               </div>
-              <p className="text-lg font-bold text-purple-300">{user.referrals || 0}</p>
+              <p className="text-lg font-bold text-purple-300">
+                {user.referrals || 0}
+              </p>
             </div>
             <div className="bg-emerald-900 p-4 rounded-xl text-center flex flex-col items-center transition-all duration-200 transform hover:scale-105 hover:shadow-xl hover:border-emerald-400 border border-transparent">
               <div className="flex items-center justify-center mb-1">
@@ -415,8 +482,7 @@ const ProfileSection = ({ user, refreshUser Data }) => {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#1c1c1c] text-white w-[90%] max-w-sm p-6 rounded-xl shadow-xl relative"
             >
-              <button
-                className="absolute top-3 right-3 text-gray-400 hover:text-white"
+              <button className="absolute top-3 right-3 text-gray-400 hover:text-white"
                 onClick={() => setShowWalletDialog(false)}
               >
                 <X className="w-5 h-5" />
@@ -439,7 +505,7 @@ const ProfileSection = ({ user, refreshUser Data }) => {
 
         {/* Withdraw Dialog */}
         {showWithdrawDialog && (
-          <div className="fixed inset-0 bg-black/80 z-          50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
