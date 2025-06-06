@@ -25,10 +25,10 @@ import {
   Loader2,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { connectWallet, disconnectWallet, getCurrentUser } from "@/data";
+import { connectWallet, disconnectWallet, getCurrentUser  } from "@/data";
 import {
   createWithdrawalRequest,
-  getUserWithdrawalHistory,
+  getUser WithdrawalHistory,
 } from "@/data/firestore/adminActions";
 
 const ProfileSection = ({ user, refreshUserData }) => {
@@ -58,8 +58,8 @@ const ProfileSection = ({ user, refreshUserData }) => {
       ) {
         const success = await connectWallet(user.id, walletInput);
         if (success) {
-          const updatedUser = await getCurrentUser(user.id);
-          if (updatedUser) refreshUserData(updatedUser);
+          const updatedUser  = await getCurrentUser (user.id);
+          if (updatedUser ) refreshUserData(updatedUser );
           setWalletInput("");
           setShowWalletDialog(false);
           toast({
@@ -102,8 +102,8 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (!user?.id) return;
     const success = await disconnectWallet(user.id);
     if (success) {
-      const updatedUser = await getCurrentUser(user.id);
-      if (updatedUser) refreshUserData(updatedUser);
+      const updatedUser  = await getCurrentUser (user.id);
+      if (updatedUser ) refreshUserData(updatedUser );
       toast({
         title: "Wallet Disconnected",
         variant: "default",
@@ -167,7 +167,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
     // Validate amount - minimum 10,000,000 STON (1 TON)
     const amount = parseFloat(withdrawAmount);
     const minWithdrawal = 10000000; // 1 TON in STON
-
+    
     if (amount < minWithdrawal || amount > (user.balance || 0)) {
       toast({
         title: "Invalid Amount",
@@ -193,7 +193,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
       // Send withdrawal request notification to admin
       const userMention = user.username
         ? `@${user.username}`
-        : `User ${user.id}`;
+        : `User  ${user.id}`;
       await sendAdminNotification(
         `💰 <b>Withdrawal Request</b>\n${userMention} requested to withdraw <b>${amount} STON</b>\nWallet: ${
           user.wallet
@@ -224,7 +224,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (!user?.id) {
       toast({
         title: "Error",
-        description: "User ID not found",
+        description: "User  ID not found",
         variant: "destructive",
         className: "bg-[#1a1a1a] text-white",
       });
@@ -297,11 +297,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
           </Badge>
         );
       default:
-        return (
-          <Badge className="bg-gray-600/20 text-gray-300 border-gray-600">
-            Unknown
-          </Badge>
-        );
+        return <Badge className="bg-gray-600/20 text-gray-300 border-gray-600">Unknown</Badge>;
     }
   };
 
@@ -310,23 +306,23 @@ const ProfileSection = ({ user, refreshUserData }) => {
     : 0;
   const displayName = user.firstName
     ? `${user.firstName} ${user.lastName || ""}`.trim()
-    : user.username || `User ${user.id}`;
+    : user.username || `User  ${user.id}`;
   const fallbackAvatar = displayName.substring(0, 2).toUpperCase();
 
   return (
-    <div
+    <div 
       className="relative w-full min-h-[100dvh] bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#1a1a1a] text-white overflow-y-auto"
-      style={{
-        touchAction: "pan-y",
-        userSelect: "none",
-        WebkitUserSelect: "none",
-        WebkitTouchCallout: "none",
+      style={{ 
+        touchAction: 'pan-y',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none'
       }}
     >
       {/* Fixed warning at the top */}
       {isBanned && (
         <div className="fixed top-0 left-0 w-full z-50 flex justify-center p-4">
-          <motion.div
+          <motion.div 
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             className="flex items-start gap-3 bg-gradient-to-r from-red-700 via-red-600 to-red-500 border-2 border-red-400 rounded-xl p-4 shadow-2xl w-full max-w-md mx-auto"
@@ -335,14 +331,10 @@ const ProfileSection = ({ user, refreshUserData }) => {
               <AlertTriangle className="text-yellow-300 bg-red-900 rounded-full p-1 w-8 h-8" />
             </div>
             <div className="flex-1">
-              <div className="font-bold text-lg text-white mb-1">
-                Account Banned
-              </div>
+              <div className="font-bold text-lg text-white mb-1">Account Banned</div>
               <div className="text-white/90 text-sm mb-2">
-                Your account has been{" "}
-                <span className="font-semibold text-yellow-200">banned</span>.
-                If you believe this is a mistake, please contact the admin for
-                assistance.
+                Your account has been <span className="font-semibold text-yellow-200">banned</span>.
+                If you believe this is a mistake, please contact the admin for assistance.
               </div>
               <a
                 href={`https://t.me/${adminUsername}`}
@@ -359,11 +351,8 @@ const ProfileSection = ({ user, refreshUserData }) => {
       )}
 
       {/* Main scrollable content */}
-      <div
-        className="flex flex-col items-center px-4 py-8"
-        style={{ paddingTop: isBanned ? "140px" : "32px" }}
-      >
-        <motion.div
+      <div className="flex flex-col items-center px-4 py-8" style={{ paddingTop: isBanned ? "140px" : "32px" }}>
+        <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -394,7 +383,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
           </motion.div>
 
           {/* User Info */}
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -409,7 +398,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
           </motion.div>
 
           {/* Stats Grid */}
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -455,19 +444,17 @@ const ProfileSection = ({ user, refreshUserData }) => {
               </div>
               <p className="text-2xl font-bold text-white">{tasksDone}</p>
               <p className="text-sm text-green-300">Completed</p>
-            </div>
+              </div>
           </motion.div>
 
           {/* Wallet Section */}
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
             className="w-full"
           >
-            <h3 className="text-lg font-semibold text-center mb-4 text-gray-300">
-              TON Wallet
-            </h3>
+            <h3 className="text-lg font-semibold text-center mb-4 text-gray-300">TON Wallet</h3>
             {user.wallet ? (
               <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-600/50 rounded-2xl p-4">
                 <div className="flex items-center justify-between gap-3">
@@ -477,8 +464,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
                     title={user.wallet}
                     style={{ userSelect: "text" }}
                   >
-                    {user.wallet.substring(0, 12)}...
-                    {user.wallet.substring(user.wallet.length - 6)}
+                    {user.wallet.substring(0, 12)}...{user.wallet.substring(user.wallet.length - 6)}
                   </span>
                   <div className="flex gap-2">
                     <button
@@ -488,11 +474,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
                       title={copying ? "Copied!" : "Copy Wallet Address"}
                       onClick={handleCopyWallet}
                     >
-                      <Copy
-                        className={`h-5 w-5 ${
-                          copying ? "text-green-400" : "text-blue-400"
-                        } transition-colors`}
-                      />
+                      <Copy className={`h-5 w-5 ${copying ? "text-green-400" : "text-blue-400"} transition-colors`} />
                     </button>
                     <button
                       type="button"
@@ -508,329 +490,297 @@ const ProfileSection = ({ user, refreshUserData }) => {
               </div>
             ) : (
               <Button
-                className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 onClick={() => setShowWalletDialog(true)}
               >
-                <Wallet className="mr-3 h-6 w-6" /> Connect Wallet
+                <Wallet className="mr-3 h-5 w-5" /> Connect Wallet
               </Button>
             )}
           </motion.div>
 
           {/* Action Buttons */}
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="w-full space-y-4"
+            className="w-full space-y-3"
           >
             <Button
-              className="w-full h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-2xl border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-2xl border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               onClick={() => setShowWithdrawDialog(true)}
             >
-              <Gift className="mr-3 h-6 w-6" /> Claim Rewards
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full h-14 bg-transparent border-2 border-blue-500/50 text-blue-400 hover:bg-blue-600/20 hover:border-blue-400 font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              onClick={handleShowHistory}
-            >
-              <History className="mr-3 h-6 w-6" /> Withdrawal History
+              <Gift className="mr-3 h-5 w-5" /> Claim Rewards
             </Button>
           </motion.div>
+
+          {/* Add some bottom padding to prevent content going under navigation */}
+          <div className="h-20"></div>
         </motion.div>
+      </div>
 
-        {/* Wallet Input Dialog */}
-        {showWalletDialog && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-600/50 text-white w-full max-w-sm p-6 rounded-2xl shadow-2xl relative"
+      {/* Fixed Withdrawal History Button - Top Right */}
+      <div className="fixed top-4 right-4 z-40">
+        <Button
+          className="h-12 w-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
+          onClick={handleShowHistory}
+        >
+          <History className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* Wallet Input Dialog */}
+      {showWalletDialog && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-600/50 text-white w-full max-w-sm p-6 rounded-2xl shadow-2xl relative"
+          >
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              onClick={() => setShowWalletDialog(false)}
             >
-              <button
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-                onClick={() => setShowWalletDialog(false)}
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <h2 className="text-xl font-bold mb-6 text-center">
-                Connect TON Wallet
-              </h2>
-              <Input
-                value={walletInput}
-                onChange={(e) => setWalletInput(e.target.value)}
-                placeholder="EQ... or UQ..."
-                className="mb-6 h-12 text-white placeholder:text-gray-400 bg-gray-800/50 border border-gray-600/50 rounded-xl focus:border-blue-500 transition-colors"
-              />
-              <Button
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-semibold"
-                onClick={handleConnectWallet}
-              >
-                <LinkIcon className="w-5 h-5 mr-2" /> Connect Wallet
-              </Button>
-            </motion.div>
-          </div>
-        )}
-
-        {/* Withdraw Dialog */}
-        {showWithdrawDialog && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-600/50 text-white w-full max-w-sm p-6 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto"
+              <X className="w-6 h-6" />
+            </button>
+            <h2 className="text-xl font-bold mb-6 text-center">Connect TON Wallet</h2>
+            <Input
+              value={walletInput}
+              onChange={(e) => setWalletInput(e.target.value)}
+              placeholder="EQ... or UQ..."
+              className="mb-6 h-12 text-white placeholder:text-gray-400 bg-gray-800/50 border border-gray-600/50 rounded-xl focus:border-blue-500 transition-colors"
+            />
+            <Button 
+              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-semibold" 
+              onClick={handleConnectWallet}
             >
-              <button
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
-                onClick={() => setShowWithdrawDialog(false)}
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <h2 className="text-xl font-bold mb-6 text-center">
-                Withdraw STON
-              </h2>
+              <LinkIcon className="w-5 h-5 mr-2" /> Connect Wallet
+            </Button>
+          </motion.div>
+        </div>
+      )}
 
-              {/* Manual Verification Notice */}
-              <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/50 rounded-xl p-4 mb-6">
-                <p className="text-yellow-300 text-sm text-center">
-                  ⚠️ All withdrawals require manual verification by admin before
-                  processing.
+      {/* Withdraw Dialog - Smaller and Compact */}
+      {showWithdrawDialog && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-600/50 text-white w-full max-w-xs p-4 rounded-2xl shadow-2xl relative"
+          >
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors z-10"
+              onClick={() => setShowWithdrawDialog(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-lg font-bold mb-4 text-center">Withdraw STON</h2>
+
+            {/* Manual Verification Notice */}
+            <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/50 rounded-xl p-3 mb-4">
+              <p className="text-yellow-300 text-xs text-center">
+                ⚠️ Manual verification required
+              </p>
+            </div>
+
+            {user.wallet ? (
+              <>
+                {/* Wallet Address Display - Compact */}
+                <div className="mb-4">
+                  <p className="text-xs text-gray-400 mb-2">Withdrawal Address:</p>
+                  <div className="bg-gray-800/50 border border-gray-600/50 p-2 rounded-lg">
+                    <p className="text-xs font-mono text-white break-all">
+                      {user.wallet.substring(0, 20)}...{user.wallet.substring(user.wallet.length - 10)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Amount Input - Compact */}
+                <div className="mb-4">
+                  <p className="text-xs text-gray-400 mb-2">Amount (STON):</p>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={withdrawAmount}
+                      onChange={(e) => setWithdrawAmount(e.target.value)}
+                      placeholder="Enter STON amount"
+                      className="h-10 text-white placeholder:text-gray-400 bg-gray-800/50 border border-gray-600/50 rounded-lg pr-16 focus:border-blue-500 text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="absolute right-1 top-1 h-8 px-2 text-xs bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30"
+                      onClick={handleMaxClick}
+                    >
+                      Max
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Balance Display - Compact */}
+                <div className="mb-4">
+                  <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/50 rounded-lg p-3">
+                    <p className="text-xs text-gray-300 text-center mb-1">Available Balance</p>
+                    <p className="text-lg font-bold text-white text-center">
+                      {user.balance?.toLocaleString() || "0"}
+                    </p>
+                    <p className="text-xs text-green-300 text-center">STON</p>
+                  </div>
+                </div>
+
+                {/* STON to TON Conversion - Compact */}
+                <div className="mb-4">
+                  <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/50 rounded-lg p-3">
+                    <p className="text-blue-300 text-xs mb-1 text-center">Conversion:</p>
+                    <p className="text-white font-bold text-sm text-center">
+                      {withdrawAmount || "0"} STON = {stonToTon(withdrawAmount)} TON
+                    </p>
+                    <p className="text-xs text-yellow-400 mt-1 text-center">
+                      Min: 10M STON (1 TON)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Withdraw Button - Compact */}
+                <Button
+                  className="w-full h-10 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleWithdraw}
+                  disabled={
+                    verifying ||
+                    !withdrawAmount ||
+                    parseFloat(withdrawAmount) < 10000000 ||
+                    parseFloat(withdrawAmount) > (user.balance || 0)
+                  }
+                >
+                  {verifying ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Request Withdrawal"
+                  )}
+                </Button>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-red-500 mb-3 text-sm">
+                  Please connect your wallet first
                 </p>
+                <Button
+                  className="w-full h-10 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg text-sm"
+                  onClick={() => {
+                    setShowWithdrawDialog(false);
+                    setShowWalletDialog(true);
+                  }}
+                >
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Connect Wallet
+                </Button>
               </div>
+            )}
+          </motion.div>
+        </div>
+      )}
 
-              {user.wallet ? (
-                <>
-                  {/* Wallet Address Display */}
-                  <div className="mb-6">
-                    <p className="text-sm text-gray-400 mb-3 font-medium">
-                      Withdrawal Address:
-                    </p>
-                    <div className="bg-gray-800/50 border border-gray-600/50 p-4 rounded-xl">
-                      <p className="text-xs font-mono text-white break-all">
-                        {user.wallet}
-                      </p>
-                    </div>
-                  </div>
+      {/* Withdrawal History Dialog */}
+      {showHistoryDialog && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-600/50 text-white w-full max-w-md p-4 rounded-2xl shadow-2xl relative max-h-[70vh] overflow-hidden"
+          >
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors z-10"
+              onClick={() => setShowHistoryDialog(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-                  {/* Amount Input */}
-                  <div className="mb-6">
-                    <p className="text-sm text-gray-400 mb-3 font-medium">
-                      Amount to Withdraw:
-                    </p>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
-                        placeholder="Enter STON amount"
-                        className="h-12 text-white placeholder:text-gray-400 bg-gray-800/50 border border-gray-600/50 rounded-xl pr-20 focus:border-blue-500"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute right-2 top-2 h-8 px-3 text-xs bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30"
-                        onClick={handleMaxClick}
-                      >
-                        Max
-                      </Button>
-                    </div>
-                  </div>
+            <h2 className="text-lg font-bold mb-4 flex items-center">
+              <History className="mr-2 h-5 w-5" />
+              Withdrawal History
+            </h2>
 
-                  {/* Balance Display */}
-                  <div className="mb-6">
-                    <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/50 rounded-xl p-4">
-                      <p className="text-sm text-gray-300 text-center">
-                        Available Balance
-                      </p>
-                      <p className="text-2xl font-bold text-white text-center">
-                        {user.balance?.toLocaleString() || "0"} STON
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* STON to TON Conversion */}
-                  <div className="mb-6">
-                    <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/50 rounded-xl p-4">
-                      <p className="text-blue-300 text-sm mb-2 text-center font-medium">
-                        Auto Conversion:
-                      </p>
-                      <p className="text-white font-bold text-lg text-center">
-                        {withdrawAmount || "0"} STON ={" "}
-                        {stonToTon(withdrawAmount)} TON
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2 text-center">
-                        Rate: 10,000,000 STON = 1 TON
-                      </p>
-                      <p className="text-xs text-yellow-400 mt-1 text-center">
-                        Minimum: 10,000,000 STON (1 TON)
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Withdraw Button */}
-                  <Button
-                    className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={handleWithdraw}
-                    disabled={
-                      verifying ||
-                      !withdrawAmount ||
-                      parseFloat(withdrawAmount) < 10000000 ||
-                      parseFloat(withdrawAmount) > (user.balance || 0)
-                    }
-                  >
-                    {verifying ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      "Request Withdrawal"
-                    )}
-                  </Button>
-                </>
-              ) : (
+            <div className="overflow-y-auto max-h-[50vh] pr-2">
+              {loadingHistory ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
+                  <span className="ml-2 text-gray-400">Loading...</span>
+                </div>
+              ) : withdrawalHistory.length === 0 ? (
                 <div className="text-center py-8">
-                  <Wallet className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-red-500 mb-4">
-                    Please set your wallet address first via the wallet
-                    connection feature.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl"
-                    onClick={() => {
-                      setShowWithdrawDialog(false);
-                      setShowWalletDialog(true);
-                    }}
-                  >
-                    <Wallet className="mr-2 h-5 w-5" />
-                    Connect Wallet
-                  </Button>
+                  <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">No withdrawal history</p>
+                  <p className="text-gray-500 text-sm mt-2">Your requests will appear here</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {withdrawalHistory.map((withdrawal) => (
+                    <Card key={withdrawal.id} className="bg-gray-800/50 border-gray-600/50">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Wallet className="h-4 w-4 text-blue-400" />
+                            <span className="font-semibold text-white text-sm">
+                              {withdrawal.amount?.toLocaleString()} STON
+                            </span>
+                          </div>
+                          {getStatusBadge(withdrawal.status)}
+                        </div>
+
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">TON Amount:</span>
+                            <span className="text-blue-400 font-mono">
+                              {stonToTon(withdrawal.amount)} TON
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Date:</span>
+                            <span className="text-white flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(withdrawal.createdAt)}
+                            </span>
+                          </div>
+
+                          {withdrawal.walletAddress && (
+                            <div className="mt-2">
+                              <span className="text-gray-400 text-xs">Wallet:</span>
+                              <p className="text-white font-mono text-xs break-all bg-gray-700/50 p-2 rounded mt-1">
+                                {withdrawal.walletAddress.substring(0, 20)}...{withdrawal.walletAddress.substring(withdrawal.walletAddress.length - 10)}
+                              </p>
+                            </div>
+                          )}
+
+                          {withdrawal.status === "approved" && withdrawal.approvedAt && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">Approved:</span>
+                              <span className="text-green-400">{formatDate(withdrawal.approvedAt)}</span>
+                            </div>
+                          )}
+
+                          {withdrawal.status === "rejected" && withdrawal.rejectedAt && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">Rejected:</span>
+                              <span className="text-red-400">{formatDate(withdrawal.rejectedAt)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               )}
-            </motion.div>
-          </div>
-        )}
-
-        {/* Withdrawal History Dialog */}
-        {showHistoryDialog && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-600/50 text-white w-full max-w-lg p-6 rounded-2xl shadow-2xl relative max-h-[80vh] overflow-y-auto"
-            >
-              <button
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
-                onClick={() => setShowHistoryDialog(false)}
-              >
-                <X className="w-6 h-6" />
-              </button>
-
-              <h2 className="text-xl font-bold mb-4 flex items-center">
-                <History className="mr-2 h-6 w-6" />
-                Withdrawal History
-              </h2>
-
-              <div className="overflow-y-auto max-h-[60vh] pr-2">
-                {loadingHistory ? (
-                  <div className="flex justify-center items-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    <span className="ml-2 text-gray-400">
-                      Loading history...
-                    </span>
-                  </div>
-                ) : withdrawalHistory.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400">No withdrawal history found</p>
-                    <p className="text-gray-500 text-sm mt-2">
-                      Your withdrawal requests will appear here
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {withdrawalHistory.map((withdrawal) => (
-                      <Card
-                        key={withdrawal.id}
-                        className="bg-[#1c1c1c] border-gray-700"
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <Wallet className="h-4 w-4 text-sky-400" />
-                              <span className="font-semibold text-white">
-                                {withdrawal.amount?.toLocaleString()} STON
-                              </span>
-                            </div>
-                            {getStatusBadge(withdrawal.status)}
-                          </div>
-
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">TON Amount:</span>
-                              <span className="text-blue-400 font-mono">
-                                {stonToTon(withdrawal.amount)} TON
-                              </span>
-                            </div>
-
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Date:</span>
-                              <span className="text-white flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {formatDate(withdrawal.createdAt)}
-                              </span>
-                            </div>
-
-                            {withdrawal.walletAddress && (
-                              <div className="mt-2">
-                                <span className="text-gray-400 text-xs">
-                                  Wallet:
-                                </span>
-                                <p className="text-white font-mono text-xs break-all bg-white/5 p-2 rounded mt-1">
-                                  {withdrawal.walletAddress}
-                                </p>
-                              </div>
-                            )}
-
-                            {withdrawal.status === "approved" &&
-                              withdrawal.approvedAt && (
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-gray-400">
-                                    Approved:
-                                  </span>
-                                  <span className="text-green-400">
-                                    {formatDate(withdrawal.approvedAt)}
-                                  </span>
-                                </div>
-                              )}
-
-                            {withdrawal.status === "rejected" &&
-                              withdrawal.rejectedAt && (
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-gray-400">
-                                    Rejected:
-                                  </span>
-                                  <span className="text-red-400">
-                                    {formatDate(withdrawal.rejectedAt)}
-                                  </span>
-                                </div>
-                              )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
