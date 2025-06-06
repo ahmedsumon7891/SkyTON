@@ -23,9 +23,10 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  Help,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { connectWallet, disconnectWallet, getCurrentUser  } from "@/data";
+import { connectWallet, disconnectWallet, getCurrentUser } from "@/data";
 import {
   createWithdrawalRequest,
   getUserWithdrawalHistory,
@@ -55,8 +56,8 @@ const ProfileSection = ({ user, refreshUserData }) => {
       ) {
         const success = await connectWallet(user.id, walletInput);
         if (success) {
-          const updatedUser  = await getCurrentUser (user.id);
-          if (updatedUser ) refreshUserData(updatedUser );
+          const updatedUser = await getCurrentUser(user.id);
+          if (updatedUser) refreshUserData(updatedUser);
           setWalletInput("");
           setShowWalletDialog(false);
           toast({
@@ -99,8 +100,8 @@ const ProfileSection = ({ user, refreshUserData }) => {
     if (!user?.id) return;
     const success = await disconnectWallet(user.id);
     if (success) {
-      const updatedUser  = await getCurrentUser (user.id);
-      if (updatedUser ) refreshUserData(updatedUser );
+      const updatedUser = await getCurrentUser(user.id);
+      if (updatedUser) refreshUserData(updatedUser);
       toast({
         title: "Wallet Disconnected",
         variant: "default",
@@ -409,7 +410,9 @@ const ProfileSection = ({ user, refreshUserData }) => {
             <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm p-3 rounded-2xl text-center border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <div className="flex items-center justify-center mb-1">
                 <Wallet className="h-5 w-5 text-blue-400 mr-1" />
-                <span className="text-gray-300 font-medium text-xs">Balance</span>
+                <span className="text-gray-300 font-medium text-xs">
+                  Balance
+                </span>
               </div>
               <p className="text-lg font-bold text-white">
                 {user.balance?.toLocaleString() || "0"}
@@ -420,18 +423,20 @@ const ProfileSection = ({ user, refreshUserData }) => {
             <div className="bg-gradient-to-br from-yellow-600/20 to-yellow-800/20 backdrop-blur-sm p-3 rounded-2xl text-center border border-yellow-500/30 hover:border-yellow-400/50 transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <div className="flex items-center justify-center mb-1">
                 <Zap className="h-5 w-5 text-yellow-400 mr-1" />
-                <span className="text-gray-300 font-medium text-xs">Energy</span>
+                <span className="text-gray-300 font-medium text-xs">
+                  Energy
+                </span>
               </div>
-              <p className="text-lg font-bold text-white">
-                {user.energy || 0}
-              </p>
+              <p className="text-lg font-bold text-white">{user.energy || 0}</p>
               <p className="text-xs text-yellow-300">Points</p>
             </div>
 
             <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm p-3 rounded-2xl text-center border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <div className="flex items-center justify-center mb-1">
                 <Users className="h-5 w-5 text-purple-400 mr-1" />
-                <span className="text-gray-300 font-medium text-xs">Referrals</span>
+                <span className="text-gray-300 font-medium text-xs">
+                  Referrals
+                </span>
               </div>
               <p className="text-lg font-bold text-white">
                 {user.referrals || 0}
@@ -531,13 +536,15 @@ const ProfileSection = ({ user, refreshUserData }) => {
           </motion.div>
         </motion.div>
 
-        {/* Withdraw Button */}
+        {/* Help Button*/}
         <div className="fixed top-4 right-4 z-50">
           <Button
             className="bg-green-600 text-white rounded-full p-2"
-            onClick={() => setShowWithdrawDialog(true)}
+            onClick={() => {
+              window.open(`https://t.me/${adminUsername}`, "_blank");
+            }}
           >
-            <History className="h-5 w-5" />
+            <Help className="h-5 w-5" />
           </Button>
         </div>
 
