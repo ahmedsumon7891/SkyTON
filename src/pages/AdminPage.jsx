@@ -35,8 +35,8 @@ const containerVariants = {
 
 const AdminPage = () => {
   const context = useContext(UserContext);
-  const sessionUser  = JSON.parse(sessionStorage.getItem('tgUser Data') || '{}');
-  const user = context?.user || sessionUser ;
+  const sessionUser = JSON.parse(sessionStorage.getItem('tgUserData') || '{}');
+  const user = context?.user || sessionUser;
 
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -67,21 +67,28 @@ const AdminPage = () => {
     setLoadingPending(true);
     setLoadingWithdrawals(true);
 
-    const [userList, taskList, pendingList, withdrawalList] = await Promise.all([
-      getAllUsers(),
-      getAllTasks(),
-      getPendingVerifications(),
-      getPendingWithdrawals()
-    ]);
+    try {
+      const [userList, taskList, pendingList, withdrawalList] = await Promise.all([
+        getAllUsers(),
+        getAllTasks(),
+        getPendingVerifications(),
+        getPendingWithdrawals()
+      ]);
 
-    setUsers(userList || []);
-    setTasks(taskList || []);
-    setPendingItems(pendingList || []);
-    setPendingWithdrawals(withdrawalList || []);
-    setLoadingUsers(false);
-    setLoadingTasks(false);
-    setLoadingPending(false);
-    setLoadingWithdrawals(false);
+      console.log('Fetched withdrawal data:', withdrawalList); // Debug log
+
+      setUsers(userList || []);
+      setTasks(taskList || []);
+      setPendingItems(pendingList || []);
+      setPendingWithdrawals(withdrawalList || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoadingUsers(false);
+      setLoadingTasks(false);
+      setLoadingPending(false);
+      setLoadingWithdrawals(false);
+    }
   };
 
   useEffect(() => {
@@ -194,24 +201,45 @@ const AdminPage = () => {
     setTab(value);
     if (value === 'users') {
       setLoadingUsers(true);
-      const userList = await getAllUsers();
-      setUsers(userList || []);
-      setLoadingUsers(false);
+      try {
+        const userList = await getAllUsers();
+        setUsers(userList || []);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoadingUsers(false);
+      }
     } else if (value === 'tasks') {
       setLoadingTasks(true);
-      const taskList = await getAllTasks();
-      setTasks(taskList || []);
-      setLoadingTasks(false);
+      try {
+        const taskList = await getAllTasks();
+        setTasks(taskList || []);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      } finally {
+        setLoadingTasks(false);
+      }
     } else if (value === 'pending') {
       setLoadingPending(true);
-      const pendingList = await getPendingVerifications();
-      setPendingItems(pendingList || []);
-      setLoadingPending(false);
+      try {
+        const pendingList = await getPendingVerifications();
+        setPendingItems(pendingList || []);
+      } catch (error) {
+        console.error('Error fetching pending items:', error);
+      } finally {
+        setLoadingPending(false);
+      }
     } else if (value === 'withdrawals') {
       setLoadingWithdrawals(true);
-      const withdrawalList = await getPendingWithdrawals();
-      setPendingWithdrawals(withdrawalList || []);
-      setLoadingWithdrawals(false);
+      try {
+        const withdrawalList = await getPendingWithdrawals();
+        console.log('Tab change - withdrawal data:', withdrawalList); // Debug log
+        setPendingWithdrawals(withdrawalList || []);
+      } catch (error) {
+        console.error('Error fetching withdrawals:', error);
+      } finally {
+        setLoadingWithdrawals(false);
+      }
     }
   };
 
