@@ -45,7 +45,7 @@ const DashboardPage = ({ activeView }) => {
       animate="visible"
     >
       {activeView === 'home' && (
-        <ProfileSection user={user} refreshUserData={refreshUser Data} />
+        <ProfileSection user={user} refreshUserData={refreshUserData} />
       )}
       {activeView === 'invite' && (
         <ReferralSection user={user} />
