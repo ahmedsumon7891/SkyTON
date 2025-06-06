@@ -28,7 +28,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { connectWallet, disconnectWallet, getCurrentUser  } from "@/data";
 import {
   createWithdrawalRequest,
-  getUser WithdrawalHistory,
+  getUserWithdrawalHistory,
 } from "@/data/firestore/adminActions";
 
 const ProfileSection = ({ user, refreshUserData }) => {
