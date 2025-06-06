@@ -58,7 +58,7 @@ const DashboardPage = ({ activeView }) => {
           user={user}
           tasks={tasks}
           isLoading={isLoadingTasks}
-          refreshUser Data={refreshUser Data}
+          refreshUserData={refreshUserData}
         />
       )}
     </motion.div>
