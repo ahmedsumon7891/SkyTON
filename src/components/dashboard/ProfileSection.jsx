@@ -747,7 +747,7 @@ const ProfileSection = ({ user, refreshUserData }) => {
                       </div>
                     </CardContent>
                   </Card>
-                ))
+                ))}
               )}
             </div>
           </motion.div>
