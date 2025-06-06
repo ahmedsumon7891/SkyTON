@@ -31,7 +31,7 @@ import {
   getUser WithdrawalHistory,
 } from "@/data/firestore/adminActions";
 
-const ProfileSection = ({ user, refreshUser Data }) => {
+const ProfileSection = ({ user, refreshUserData }) => {
   const [walletInput, setWalletInput] = useState("");
   const [showWalletDialog, setShowWalletDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
@@ -59,7 +59,7 @@ const ProfileSection = ({ user, refreshUser Data }) => {
         const success = await connectWallet(user.id, walletInput);
         if (success) {
           const updatedUser  = await getCurrentUser (user.id);
-          if (updatedUser ) refreshUser Data(updatedUser );
+          if (updatedUser ) refreshUserData(updatedUser );
           setWalletInput("");
           setShowWalletDialog(false);
           toast({
@@ -103,7 +103,7 @@ const ProfileSection = ({ user, refreshUser Data }) => {
     const success = await disconnectWallet(user.id);
     if (success) {
       const updatedUser  = await getCurrentUser (user.id);
-      if (updatedUser ) refreshUser Data(updatedUser );
+      if (updatedUser ) refreshUserData(updatedUser );
       toast({
         title: "Wallet Disconnected",
         variant: "default",
